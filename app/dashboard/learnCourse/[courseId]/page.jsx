@@ -269,15 +269,23 @@ function LearnCoursePage() {
           )}
         </div>
         <div className="overflow-y-auto max-h-[calc(100vh-140px)] p-4">
-          {roadmap.map((chapter, idx) => (
+          {roadmap.map((chapter, idx) => {
+            const chapterWatched = (chapter.subtopics || []).filter(
+              sub => watched[`${chapter.title}__${sub}`]
+            ).length;
+            const chapterTotal = (chapter.subtopics || []).length;
+            const isChapterComplete = chapterTotal > 0 && chapterWatched === chapterTotal;
+            return (
             <div key={idx} className="mb-6">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-semibold">
-                    {idx + 1}
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+                    isChapterComplete ? 'bg-accent text-white' : 'bg-primary text-white'
+                  }`}>
+                    {isChapterComplete ? '✓' : idx + 1}
                   </div>
                   <div className="font-semibold text-sm text-sidebar-foreground">{chapter.title}</div>
                 </div>
-              <ul className="ml-10 space-y-1">
+                <ul className="ml-10 space-y-1">
                 {(chapter.subtopics || []).map((subtopic, sidx) => {
                   const lessonKey = `${chapter.title}__${subtopic}`;
                   const isWatched = watched[lessonKey];
@@ -305,7 +313,8 @@ function LearnCoursePage() {
                 })}
               </ul>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
                
@@ -391,7 +400,7 @@ function LearnCoursePage() {
                         type="checkbox"
                         checked={!!watched[selectedKey]}
                         onChange={() => toggleWatched(selectedKey)}
-                        className="accent-cyan-400 w-5 h-5"
+                        className="accent-primary w-5 h-5"
                         disabled={loadingProgress}
                       />
                       <span className="text-sm font-medium text-foreground">
@@ -401,7 +410,7 @@ function LearnCoursePage() {
                   </div>
 
                   {/* Video Player */}
-                  <div className="rounded-xl overflow-hidden shadow-lg mb-8" style={{ background: 'black' }}>
+                  <div className="rounded-xl overflow-hidden shadow-lg mb-8 bg-black">
                     {videoSection}
                   </div>
 

@@ -199,3 +199,18 @@ Files changed:
 - All course creation pages now use consistent Tailwind utility classes
 
 ---
+
+## 2026-08-18 - US-008
+**Redesign the learning and study experience**
+
+Files changed:
+- `app/dashboard/learnCourse/[courseId]/page.jsx` — Fixed remaining inline styles, added chapter completion indicators
+
+**Learnings:**
+- Replaced `style={{ background: 'black' }}` with Tailwind `bg-black` for video player
+- Fixed `accent-cyan-400` to `accent-primary` for consistency with design system
+- Added per-chapter completion checkmarks (shows ✓ when all lessons in chapter watched)
+- Chapter number badges now show green accent color when complete
+- All inline styles eliminated from the learning page — fully Tailwind now
+
+---
