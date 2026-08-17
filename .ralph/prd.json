@@ -1,0 +1,290 @@
+{
+  "branchName": "ai-rebuild",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Inventory the existing LEAP application",
+      "description": "Perform a comprehensive read-only audit of the existing LEAP codebase before making major changes. Identify the application architecture, routes/pages, reusable UI components, API routes, external API integrations, authentication, database access, AI integrations, video/content systems, LaTeX rendering, and critical user flows. Produce documentation that future stories can use as the authoritative map of the application.",
+      "acceptanceCriteria": [
+        "All major application routes/pages are identified and documented",
+        "All API routes and server-side integrations are identified",
+        "All external APIs/services are identified",
+        "Authentication and authorization flow is documented",
+        "Database and persistence layer are documented",
+        "AI integrations are documented",
+        "Course creation and learning flows are documented",
+        "Current LaTeX rendering implementation is identified",
+        "Important reusable UI components are identified",
+        "Critical user journeys are documented",
+        "No application functionality is removed during this discovery story",
+        "Documentation is committed to the repository"
+      ],
+      "priority": 1,
+      "passes": false
+    },
+    {
+      "id": "US-002",
+      "title": "Inventory and verify every API integration",
+      "description": "Test every API and external integration discovered during the application audit. Determine whether each integration works, fails, is deprecated, is unused, requires configuration, or needs replacement. Do not remove an integration merely because it is old or unfamiliar.",
+      "acceptanceCriteria": [
+        "Every discovered API/integration has been tested where technically possible",
+        "Each API is classified as working, broken, deprecated, unused, configuration-dependent, or requiring replacement",
+        "HTTP/API responses and relevant failure reasons are recorded",
+        "Authentication and environment-variable requirements are documented without exposing secret values",
+        "API failures are investigated rather than silently ignored",
+        "Required broken APIs are identified for later repair",
+        "No existing API is silently deleted or replaced during the audit",
+        "An API audit document is created and committed"
+      ],
+      "priority": 2,
+      "passes": false
+    },
+    {
+      "id": "US-003",
+      "title": "Fix required API and integration failures",
+      "description": "Repair or replace API integrations that are required for the application and were identified as broken during the API audit. Preserve behavior where possible and document any unavoidable changes.",
+      "acceptanceCriteria": [
+        "All critical broken integrations identified in the audit are repaired or replaced",
+        "Required API authentication/configuration works",
+        "Relevant application flows using the repaired integrations work",
+        "Deprecated integrations that require replacement are migrated where necessary",
+        "Unused integrations are not unnecessarily reintroduced",
+        "API audit documentation is updated with final status",
+        "Tests or verification evidence exist for repaired integrations",
+        "No secrets are committed"
+      ],
+      "priority": 3,
+      "passes": false
+    },
+    {
+      "id": "US-004",
+      "title": "Establish the LEAP design system",
+      "description": "Create a consistent modern visual foundation for the entire application before performing the full UI redesign. Audit existing styling and establish reusable patterns for typography, spacing, colors, buttons, forms, cards, navigation, dialogs, loading states, errors, empty states, and responsive behavior.",
+      "acceptanceCriteria": [
+        "A consistent design system is established",
+        "Existing duplicated styling patterns are consolidated where practical",
+        "Typography is consistent",
+        "Spacing and layout conventions are consistent",
+        "Buttons and interactive controls are consistent",
+        "Forms and inputs are consistent",
+        "Cards and content containers are consistent",
+        "Loading, empty, and error states have reusable patterns",
+        "The design system supports responsive layouts",
+        "Existing functionality remains usable"
+      ],
+      "priority": 4,
+      "passes": false
+    },
+    {
+      "id": "US-005",
+      "title": "UI redesign pass 1 - information architecture",
+      "description": "Perform the first complete UI/UX redesign pass across the application. Focus on information architecture, navigation, page hierarchy, layout structure, dashboard organization, and separation between course creation and course learning experiences.",
+      "acceptanceCriteria": [
+        "Every major application page is reviewed",
+        "Navigation is coherent",
+        "Page hierarchy is clear",
+        "Course maker and learning experiences have clear information architecture",
+        "Dashboard structure is improved",
+        "Major user journeys have logical navigation",
+        "No major page is left with the old structure without justification",
+        "Changes are implemented rather than merely documented"
+      ],
+      "priority": 5,
+      "passes": false
+    },
+    {
+      "id": "US-006",
+      "title": "UI redesign pass 2 - visual system",
+      "description": "Perform the second complete UI/UX pass focused on visual quality and consistency across the entire application.",
+      "acceptanceCriteria": [
+        "Every major page is visually reviewed",
+        "Typography is consistently applied",
+        "Spacing is consistent",
+        "Color usage is consistent",
+        "Cards, buttons, forms, dialogs, and navigation share a coherent visual language",
+        "Visual hierarchy is improved",
+        "Obvious legacy styling is removed or modernized",
+        "The application presents as one cohesive product"
+      ],
+      "priority": 6,
+      "passes": false
+    },
+    {
+      "id": "US-007",
+      "title": "Redesign the course maker experience",
+      "description": "Rework the complete course creation and course management experience into a modern course-authoring interface.",
+      "acceptanceCriteria": [
+        "Course creation flow is redesigned",
+        "Course dashboard/management is redesigned",
+        "Module management is redesigned",
+        "Subtopic management is redesigned",
+        "Course editing is redesigned",
+        "Video/content attachment flows are redesigned",
+        "AI course generation experience is redesigned",
+        "Preview experience is redesigned",
+        "Loading and generation states are handled clearly",
+        "Error states are handled clearly",
+        "Existing course-maker functionality remains operational"
+      ],
+      "priority": 7,
+      "passes": false
+    },
+    {
+      "id": "US-008",
+      "title": "Redesign the learning and study experience",
+      "description": "Rework the complete learner-facing experience into a modern course studying platform focused on content consumption, video watching, navigation, and progress.",
+      "acceptanceCriteria": [
+        "Course overview is redesigned",
+        "Module and lesson navigation is redesigned",
+        "Study content viewer is redesigned",
+        "Video watching experience is redesigned",
+        "Lesson navigation is intuitive",
+        "Progress indicators are clear",
+        "Completion states are clear",
+        "Learning content is readable and well structured",
+        "Responsive learning experience works on smaller screens",
+        "Existing learning functionality remains operational"
+      ],
+      "priority": 8,
+      "passes": false
+    },
+    {
+      "id": "US-009",
+      "title": "Fix and verify the LaTeX renderer",
+      "description": "Investigate the existing LaTeX/math rendering implementation, identify the root cause of rendering problems, repair it, and verify mathematical content throughout the application.",
+      "acceptanceCriteria": [
+        "Current LaTeX rendering implementation is understood",
+        "Root cause of rendering failures is identified",
+        "LaTeX renderer is repaired",
+        "Inline mathematical expressions render correctly",
+        "Block mathematical expressions render correctly",
+        "Complex mathematical expressions are tested",
+        "Generated study content containing LaTeX renders correctly",
+        "Rendering works across all relevant learning/content pages",
+        "Malformed or unsupported expressions fail gracefully",
+        "LaTeX verification is documented"
+      ],
+      "priority": 9,
+      "passes": false
+    },
+    {
+      "id": "US-010",
+      "title": "UI redesign pass 3 - course creation and editing",
+      "description": "Perform another complete UI audit with special emphasis on every course creation, editing, generation, and management screen.",
+      "acceptanceCriteria": [
+        "All course-maker pages are reviewed again",
+        "Course creation UX is improved where weaknesses remain",
+        "Course editing UX is improved where weaknesses remain",
+        "Module/subtopic interactions are improved",
+        "AI generation states are improved",
+        "Content attachment interactions are improved",
+        "Empty and error states are improved",
+        "The complete course-maker experience is visually consistent"
+      ],
+      "priority": 10,
+      "passes": false
+    },
+    {
+      "id": "US-011",
+      "title": "UI redesign pass 4 - learning and content consumption",
+      "description": "Perform another complete UI audit with special emphasis on studying, watching, reading, navigating lessons, and consuming generated educational content.",
+      "acceptanceCriteria": [
+        "All learner-facing pages are reviewed again",
+        "Lesson reading experience is improved",
+        "Video experience is improved",
+        "Study content hierarchy is improved",
+        "LaTeX content integrates naturally with the design",
+        "Lesson navigation is improved",
+        "Progress feedback is improved",
+        "Long educational content remains readable",
+        "The learner experience is visually consistent"
+      ],
+      "priority": 11,
+      "passes": false
+    },
+    {
+      "id": "US-012",
+      "title": "UI redesign pass 5 - full application polish",
+      "description": "Perform the fifth complete UI/UX audit across the entire application. This is a genuine final redesign and polish pass, not a superficial pass-count requirement.",
+      "acceptanceCriteria": [
+        "Every major application page is reviewed again",
+        "Responsive behavior is reviewed",
+        "Mobile layouts are reviewed",
+        "Loading states are reviewed",
+        "Empty states are reviewed",
+        "Error states are reviewed",
+        "Accessibility issues visible during the audit are addressed",
+        "Interaction and animation quality is reviewed",
+        "Visual inconsistencies are corrected",
+        "Obvious UX friction is corrected",
+        "The complete application presents as one polished product",
+        "The five UI passes represent substantive rework and improvement"
+      ],
+      "priority": 12,
+      "passes": false
+    },
+    {
+      "id": "US-013",
+      "title": "Establish end-to-end application testing",
+      "description": "Establish or improve automated end-to-end testing for the critical LEAP user journeys. Use the project's existing testing infrastructure when appropriate and introduce suitable tooling only when necessary.",
+      "acceptanceCriteria": [
+        "Critical user journeys have automated or repeatable E2E verification",
+        "Authentication flow is tested",
+        "Course creation flow is tested",
+        "AI course generation flow is tested where practical",
+        "Course editing flow is tested",
+        "Learning/study flow is tested",
+        "Video/content flow is tested where practical",
+        "Progress/completion flow is tested",
+        "LaTeX rendering is included in relevant verification",
+        "Tests can be executed reliably"
+      ],
+      "priority": 13,
+      "passes": false
+    },
+    {
+      "id": "US-014",
+      "title": "Run full application audit and fix critical issues",
+      "description": "Perform a final end-to-end audit of the entire application after the redesign. Identify remaining functional, UI, API, responsive, and integration problems and fix all critical issues discovered.",
+      "acceptanceCriteria": [
+        "All major user journeys are executed end-to-end",
+        "All known API integrations have final documented status",
+        "Critical console errors are investigated",
+        "Critical network/API failures are investigated",
+        "Critical UI bugs are fixed",
+        "Critical responsive issues are fixed",
+        "Critical authentication issues are fixed",
+        "Critical course-maker issues are fixed",
+        "Critical learning issues are fixed",
+        "Critical LaTeX issues are fixed",
+        "Regression testing is performed after fixes"
+      ],
+      "priority": 14,
+      "passes": false
+    },
+    {
+      "id": "US-015",
+      "title": "Final production readiness verification",
+      "description": "Perform the final verification required to declare the LEAP modernization complete. Verify that the project satisfies the PRD, documentation is current, tests pass, and no critical known issues remain.",
+      "acceptanceCriteria": [
+        "All previous PRD stories have passes=true",
+        "Every discovered API has been tested and documented",
+        "Required API integrations work",
+        "The complete UI has undergone five substantive redesign/rework passes",
+        "Course maker experience is modern and functional",
+        "Learning/study experience is modern and functional",
+        "LaTeX renderer is fixed and verified",
+        "Critical E2E flows pass",
+        "Typecheck passes",
+        "Lint passes where configured",
+        "Relevant tests pass",
+        "Production build succeeds",
+        "No secrets are committed",
+        "Documentation reflects the final implementation",
+        "No unresolved critical application issues remain"
+      ],
+      "priority": 15,
+      "passes": false
+    }
+  ]
+}
