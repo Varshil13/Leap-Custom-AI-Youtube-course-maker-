@@ -1,4 +1,3 @@
-
 "use client";
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
@@ -6,17 +5,16 @@ import { db } from "@/services/db";
 import { CourseDetails } from "@/services/schema";
 import { eq } from "drizzle-orm";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import LoadingDialouge from "../../createCourse/_components/LoadingDialouge";
 import toast from "react-hot-toast";
-
-
+import { EmptyState } from "@/components/ui/empty-state";
 
 function CompletedCourses() {
   const [certificateLoading, setCertificateLoading] = useState({});
   const { user } = useUser();
   const [courses, setCourses] = useState([]);
-  // Persistent cache: load from localStorage if available
   const [progressCache, setProgressCache] = useState(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -42,7 +40,6 @@ function CompletedCourses() {
       }
     };
     fetchAll();
-    // eslint-disable-next-line
   }, [user]);
 
   const fetchCourses = async () => {
@@ -57,10 +54,7 @@ function CompletedCourses() {
   const fetchAllProgress = async (fetchedCourses) => {
     const progressObj = { ...progressCache };
     for (const course of fetchedCourses) {
-      if (progressObj[course.courseId] !== undefined) {
-        // Already cached, skip API call
-        continue;
-      }
+      if (progressObj[course.courseId] !== undefined) continue;
       const res = await fetch(`/api/progress?courseId=${course.courseId}`);
       if (!res.ok) continue;
       const data = await res.json();
@@ -76,8 +70,7 @@ function CompletedCourses() {
       progressObj[course.courseId] = percent;
     }
     setProgress(progressObj);
-    setProgressCache(progressObj); // update cache
-    // Save to localStorage for persistence
+    setProgressCache(progressObj);
     if (typeof window !== 'undefined') {
       try {
         localStorage.setItem('progressCache', JSON.stringify(progressObj));
@@ -87,11 +80,9 @@ function CompletedCourses() {
 
   const completedCourses = courses.filter((course) => progress[course.courseId] === 100);
 
-  // Certificate request logic (should be inside the component)
   const handleCertificateRequest = async (course) => {
     setCertificateLoading((prev) => ({ ...prev, [course.courseId]: true }));
     try {
-      // Generate certificate
       const genResponse = await fetch("/api/genCertificate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -107,7 +98,6 @@ function CompletedCourses() {
         toast.error(genData.error || "Failed to generate certificate");
         return;
       }
-      // Send certificate via email
       const sendResponse = await fetch("/api/sendCertificate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -122,7 +112,7 @@ function CompletedCourses() {
       const sendData = await sendResponse.json();
       if (sendResponse.ok) {
         toast.success(
-          `🎉 Certificate sent successfully! Check your email: ${user?.emailAddresses[0]?.emailAddress}`
+          `Certificate sent successfully! Check your email: ${user?.emailAddresses[0]?.emailAddress}`
         );
       } else {
         toast.error(sendData.error || "Failed to send certificate");
@@ -139,65 +129,50 @@ function CompletedCourses() {
     <>
       <LoadingDialouge loading={loading} activeStep={2} />
       <div>
-        <h2 className="text-2xl font-bold mb-4">Completed Courses</h2>
-        {!loading &&
-          (completedCourses.length === 0 ? (
-            <div>No completed courses found.</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {completedCourses.map((course) => (
-                <div
-                  key={course.courseId}
-                  className="border rounded-lg p-4 flex flex-col items-center shadow-md"
-                  style={{
-                    background: "var(--card)",
-                    borderColor: "var(--border)",
-                  }}
-                >
-                  <img
-                    src={course.coverPhoto || "/placeholder.png"}
-                    alt={course.name}
-                    className="w-full h-32 object-cover rounded mb-3"
-                  />
-                  <h3 className="font-bold text-lg mb-1 text-foreground">
-                    {course.name}
-                  </h3>
-                  <p
-                    className="text-sm mb-2"
-                    style={{ color: "var(--muted-foreground)" }}
-                  >
-                    {course.description}
-                  </p>
-                  <span
-                    className="text-xs font-semibold"
-                    style={{ color: "var(--foreground)" }}
-                  >
+        <h2 className="text-2xl font-bold mb-6">Completed Courses</h2>
+        {!loading && completedCourses.length === 0 ? (
+          <EmptyState
+            title="No completed courses"
+            description="Complete a course to see it here and get your certificate."
+          />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {completedCourses.map((course) => (
+              <Card key={course.courseId} className="overflow-hidden">
+                <div className="h-32 bg-muted flex items-center justify-center text-muted-foreground text-sm">
+                  {course.name?.charAt(0) || '?'}
+                </div>
+                <CardContent className="p-4 space-y-3">
+                  <div>
+                    <h3 className="font-semibold text-foreground truncate">{course.name}</h3>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{course.description}</p>
+                  </div>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
                     100% completed
                   </span>
-                  <div className="w-full flex flex-col md:flex-row gap-2 mt-2 md:justify-center">
+                  <div className="flex gap-2">
                     <Button
-                      className="w-full md:w-auto"
-                      onClick={() =>
-                        router.push(`/dashboard/learnCourse/${course.courseId}`)
-                      }
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => router.push(`/dashboard/learnCourse/${course.courseId}`)}
                     >
                       View Course
                     </Button>
                     <Button
-                      className="w-full md:w-auto"
-                      variant="outline"
+                      size="sm"
+                      className="flex-1"
                       onClick={() => handleCertificateRequest(course)}
                       disabled={certificateLoading[course.courseId]}
                     >
-                      {certificateLoading[course.courseId]
-                        ? "Sending Certificate..."
-                        : "🏆 Get Certificate"}
+                      {certificateLoading[course.courseId] ? "Sending..." : "Get Certificate"}
                     </Button>
                   </div>
-                </div>
-              ))}
-            </div>
-          ))}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </>
   );

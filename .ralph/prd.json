@@ -73,7 +73,7 @@
         "Existing functionality remains usable"
       ],
       "priority": 4,
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-005",

@@ -106,3 +106,32 @@ Files changed:
 - The real issues were security gaps (missing auth) and dead code, not broken APIs
 
 ---
+
+## 2026-08-18 - US-004
+**Establish the LEAP design system**
+
+Files changed:
+- `app/globals.css` — Unified typography, merged markdown/latex content styles, added design system utilities
+- `components/ui/card.jsx` — Installed shadcn Card component
+- `components/ui/input.jsx` — Installed shadcn Input component
+- `components/ui/loading-state.jsx` — Created reusable loading state component
+- `components/ui/empty-state.jsx` — Created reusable empty state component
+- `components/ui/error-state.jsx` — Created reusable error state component
+- `app/createCourse/_components/LoadingDialouge.jsx` — Refactored to use ds-spinner, removed gif dependency
+- `app/createCourse/_components/TopicForm.jsx` — Refactored to use Card and Input components
+- `app/dashboard/_components/Header.jsx` — Refactored to use consistent header pattern
+- `app/dashboard/_components/Sidebar.jsx` — Refactored to use Tailwind classes instead of inline styles
+- `app/dashboard/_components/Showcourses.jsx` — Refactored to use Card, EmptyState
+- `app/dashboard/completed/page.jsx` — Refactored to use Card, EmptyState
+
+**Learnings:**
+- Merged markdown-content and latex-content into shared typography rules to eliminate duplication
+- Standardized on Geist Sans font family for all content (was mixing system fonts, Inter, etc.)
+- Created design system CSS utility classes: ds-spinner, ds-card, ds-page, ds-section-title, ds-muted, ds-focus-ring
+- Removed unused `.dark` class theme that conflicted with the actual `:root` theme
+- Added `--code-bg`, `--code-border`, `--code-text` CSS variables for code block theming
+- LoadingDialouge now uses CSS spinner instead of animated GIF
+- Sidebar now uses Tailwind utility classes instead of mouseOver/mouseOut inline style manipulation
+- All content typography (headings, paragraphs, lists, code) now follows consistent sizing and spacing
+
+---

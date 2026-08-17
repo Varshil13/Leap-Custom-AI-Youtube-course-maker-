@@ -1,68 +1,53 @@
 'use client'
 import React from 'react'
 import Image from 'next/image'
-import {HiOutlineHome, HiOutlinePower, HiOutlineShieldCheck, HiOutlineSquare3Stack3D} from 'react-icons/hi2'
+import { HiOutlineHome, HiOutlineSquare3Stack3D } from 'react-icons/hi2'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { Progress } from '../../../components/ui/progress'
 
 function Sidebar() {
-    
+  const MenuItems = [
+    { id: 1, name: 'Home', icon: <HiOutlineHome size={20} />, path: '/dashboard' },
+    { id: 2, name: 'Completed', icon: <HiOutlineSquare3Stack3D size={20} />, path: '/dashboard/completed' },
+  ]
 
-        const MenuItems= [
-                {id:1,name:'Home',icon:<HiOutlineHome />,path:'/dashboard'},
-                {id:2,name:'Completed',icon:<HiOutlineSquare3Stack3D />,path:'/dashboard/completed'},
-                {id:3,name:'Upgrade',icon:<HiOutlineShieldCheck />,path:'/dashboard/upgrade'},
-            ]
-    
-    const path = usePathname();
-      return (
-        <div
-            className='fixed h-full p-5 w-64 shadow-md'
-            style={{ background: 'var(--sidebar)', color: 'var(--sidebar-foreground)', borderRight: '1px solid var(--sidebar-border)' }}
-        >
-            <div className='flex items-center gap-3 mb-5'>
-                <Image src="/logo.png" alt="Logo" width={80} height={80} />
-                <h1 className='text-4xl font-bold' style={{ color: 'var(--primary)' }}>Leap</h1>
-            </div>
-            <hr className='my-5' style={{ borderColor: 'var(--sidebar-border)' }} />
+  const path = usePathname()
 
-            <ul>
-                {MenuItems.map((item, index) => (
-                    <Link href={item.path} key={index}>
-                        <div
-                            className={`flex items-center mb-2.5 gap-2 p-3 cursor-pointer rounded-lg transition-colors duration-150 ${item.path == path ? 'font-semibold' : ''}`}
-                            style={{
-                                color: item.path == path ? 'var(--sidebar-primary-foreground)' : 'var(--sidebar-foreground)',
-                                background: item.path == path ? 'var(--sidebar-primary)' : 'transparent',
-                            }}
-                            onMouseOver={e => {
-                                if (item.path !== path) {
-                                    e.currentTarget.style.background = 'var(--sidebar-accent)';
-                                    e.currentTarget.style.color = 'var(--sidebar-accent-foreground)';
-                                }
-                            }}
-                            onMouseOut={e => {
-                                if (item.path !== path) {
-                                    e.currentTarget.style.background = 'transparent';
-                                    e.currentTarget.style.color = 'var(--sidebar-foreground)';
-                                }
-                            }}
-                        >
-                            <div className='text-4xl'>{item.icon}</div>
-                            <h2>{item.name}</h2>
-                        </div>
-                    </Link>
-                ))}
-            </ul>
-            <hr className='my-5' style={{ borderColor: 'var(--sidebar-border)' }} />
-            {/* Progress Bar
-            <div className='absolute bottom-10 w-[80%]'>
-                <Progress value={60} />
-                <h2 className='text-sm my-2' style={{ color: 'var(--sidebar-foreground)' }}> 3 out of 5 courses created</h2>
-                <h2 className='text-xs' style={{ color: 'var(--muted-foreground)' }}>Upgrade your plan for unlimited course generation </h2>
-            </div> */}
-        </div>
+  return (
+    <aside
+      className='fixed h-full w-64 border-r bg-sidebar hidden md:flex flex-col'
+      style={{ borderColor: 'var(--sidebar-border)' }}
+    >
+      <div className='p-5 border-b' style={{ borderColor: 'var(--sidebar-border)' }}>
+        <Link href="/dashboard" className='flex items-center gap-3'>
+          <Image src="/logo.png" alt="LEAP" width={48} height={48} />
+          <h1 className='text-2xl font-bold text-primary'>Leap</h1>
+        </Link>
+      </div>
+
+      <nav className='flex-1 p-4'>
+        <ul className='space-y-1'>
+          {MenuItems.map((item) => {
+            const isActive = item.path === path
+            return (
+              <li key={item.id}>
+                <Link
+                  href={item.path}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                  }`}
+                >
+                  {item.icon}
+                  <span>{item.name}</span>
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+      </nav>
+    </aside>
   )
 }
 
