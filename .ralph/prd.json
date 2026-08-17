@@ -200,7 +200,7 @@
         "The learner experience is visually consistent"
       ],
       "priority": 11,
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-012",

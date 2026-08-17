@@ -246,3 +246,19 @@ Files changed:
 - Course creation flow is now visually consistent across all steps
 
 ---
+
+## 2026-08-18 - US-011
+**UI redesign pass 4 - learning and content consumption**
+
+Files changed:
+- `app/dashboard/learnCourse/[courseId]/page.jsx` — Added next/previous lesson navigation
+
+**Learnings:**
+- Added prev/next lesson buttons after video and content sections
+- Navigation buttons show lesson names on desktop, short labels on mobile
+- Shows "Course complete!" message when user reaches the last lesson
+- Buttons auto-scroll to the next lesson in the sidebar
+- Flat lessons array computed from roadmap for sequential navigation
+- Learning experience now has a clear linear flow through the course
+
+---

@@ -491,6 +491,47 @@ function LearnCoursePage() {
                       </div>
                     )}
                   </div>
+
+                  {/* Next/Previous Lesson Navigation */}
+                  {(() => {
+                    const flatLessons = roadmap.flatMap(ch =>
+                      (ch.subtopics || []).map(sub => ({ chapter: ch.title, subtopic: sub }))
+                    );
+                    const currentIdx = flatLessons.findIndex(
+                      l => l.chapter === chapterTitle && l.subtopic === subtopicName
+                    );
+                    const prev = currentIdx > 0 ? flatLessons[currentIdx - 1] : null;
+                    const next = currentIdx < flatLessons.length - 1 ? flatLessons[currentIdx + 1] : null;
+                    return (
+                      <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
+                        {prev ? (
+                          <Button
+                            variant="outline"
+                            onClick={() => setSelectedKey(`${prev.chapter}__${prev.subtopic}`)}
+                            className="flex items-center gap-2"
+                          >
+                            <span>&larr;</span>
+                            <span className="hidden sm:inline">{prev.subtopic}</span>
+                            <span className="sm:hidden">Previous</span>
+                          </Button>
+                        ) : <div />}
+                        {next ? (
+                          <Button
+                            onClick={() => setSelectedKey(`${next.chapter}__${next.subtopic}`)}
+                            className="flex items-center gap-2"
+                          >
+                            <span className="hidden sm:inline">{next.subtopic}</span>
+                            <span className="sm:hidden">Next</span>
+                            <span>&rarr;</span>
+                          </Button>
+                        ) : (
+                          <div className="text-sm text-muted-foreground font-medium">
+                            🎉 Course complete!
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               );
             })()}
