@@ -214,3 +214,21 @@ Files changed:
 - All inline styles eliminated from the learning page — fully Tailwind now
 
 ---
+
+## 2026-08-18 - US-009
+**Fix and verify the LaTeX renderer**
+
+Files changed:
+- `app/_components/LaTeXRenderer.jsx` — Rewrote with proper KaTeX math support
+
+**Learnings:**
+- Previous renderer was regex-only and never rendered actual math expressions
+- Rewrote to split content on `$...$` and `$$...$$` delimiters before processing
+- Inline math uses KaTeX with `displayMode: false`, block math with `displayMode: true`
+- KaTeX errors fail gracefully — displays raw math string on failure
+- Code blocks now use CSS variables (`--code-bg`, `--code-text`) instead of hardcoded colors
+- All LaTeX document commands still work: \section, \subsection, \itemize, \enumerate, \lstlisting, \textbf, \textit, \texttt
+- Uses `useMemo` for KaTeX rendering to avoid re-rendering on every parent update
+- KaTeX library was already installed but unused — now properly integrated
+
+---

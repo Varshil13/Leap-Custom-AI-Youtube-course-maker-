@@ -165,7 +165,7 @@
         "LaTeX verification is documented"
       ],
       "priority": 9,
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-010",
