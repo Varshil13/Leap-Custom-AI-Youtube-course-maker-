@@ -262,3 +262,18 @@ Files changed:
 - Learning experience now has a clear linear flow through the course
 
 ---
+
+## 2026-08-18 - US-012
+**UI redesign pass 5 - full application polish**
+
+Files changed:
+- `app/dashboard/upgrade/page.jsx` — Replaced dead "UNDER DEVELOPMENT" text with proper coming soon page
+
+**Learnings:**
+- All remaining inline styles are either dynamic (progress bar widths) or CSS variable references
+- Hardcoded colors only exist in Clerk theme overrides (acceptable for external component)
+- Zero `text-gray-*` classes remain — all migrated to design system tokens
+- Upgrade page now has icon, heading, and descriptive text instead of bare text
+- All 5 UI passes represent substantive rework across navigation, IA, visual system, course maker, and learning experience
+
+---
