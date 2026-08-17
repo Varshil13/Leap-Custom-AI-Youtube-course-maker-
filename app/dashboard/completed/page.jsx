@@ -129,12 +129,10 @@ function CompletedCourses() {
     <>
       <LoadingDialouge loading={loading} activeStep={2} />
       <div>
-        <div>
         <h1 className="text-2xl font-bold mb-1">Completed Courses</h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground mb-6">
           Courses you have finished and can get certificates for
         </p>
-      </div>
         {!loading && completedCourses.length === 0 ? (
           <EmptyState
             title="No completed courses"

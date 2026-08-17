@@ -162,3 +162,21 @@ Files changed:
 - Dashboard layout simplified with cleaner component hierarchy
 
 ---
+
+## 2026-08-18 - US-006
+**UI redesign pass 2 - visual system**
+
+Files changed:
+- `app/dashboard/learnCourse/[courseId]/page.jsx` — Replaced all inline styles with Tailwind utility classes
+- `app/dashboard/completed/page.jsx` — Fixed nesting issue, added margin to heading
+
+**Learnings:**
+- Replaced ~20 inline `style={{ color: 'var(--foreground)' }}` with Tailwind `text-foreground`
+- Replaced ~15 inline `style={{ background: 'var(--muted)' }}` with Tailwind `bg-muted`
+- Replaced `text-gray-400` (Tailwind gray) with `text-muted-foreground` (design system)
+- Fixed hardcoded `#22d3ee` to use design system `bg-accent`
+- Removed inline `borderLeft: '4px solid var(--primary)'` and replaced with Tailwind `border-l-4 border-primary`
+- All sidebar, video, and content sections now use consistent Tailwind classes
+- Every page now follows the same color token system consistently
+
+---

@@ -107,7 +107,7 @@
         "The application presents as one cohesive product"
       ],
       "priority": 6,
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-007",

@@ -238,23 +238,22 @@ function LearnCoursePage() {
 
   // Sidebar: chapters/subtopics
   return (
-  <div className="flex h-screen" style={{ background: 'var(--background)' }}>
+  <div className="flex h-screen bg-background">
       {/* Sidebar */}
-      <div className="w-80 shadow-lg border-r flex flex-col" style={{ background: 'var(--sidebar)', borderColor: 'var(--sidebar-border)' }}>
-        <div className="p-4 border-b" style={{ borderColor: 'var(--sidebar-border)' }}>
+      <div className="w-80 shadow-lg border-r border-sidebar-border bg-sidebar flex flex-col">
+        <div className="p-4 border-b border-sidebar-border">
           <a href="/dashboard" className="text-xs text-primary hover:underline mb-2 inline-block">
             &larr; Back to Dashboard
           </a>
-          <h2 className="font-bold text-lg" style={{ color: 'var(--sidebar-foreground)' }}>Course Content</h2>
+          <h2 className="font-bold text-lg text-sidebar-foreground">Course Content</h2>
           {course && (
             <div className="mt-2">
-              <p className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>{course.name}</p>
+              <p className="text-sm font-medium text-muted-foreground">{course.name}</p>
               <div className="flex items-center mt-1">
-                <div className="w-full rounded-full h-2" style={{ background: 'var(--muted)' }}>
+                <div className="w-full rounded-full h-2 bg-muted">
                   <div 
-                    className="h-2 rounded-full transition-all duration-300" 
+                    className="h-2 rounded-full transition-all duration-300 bg-primary" 
                     style={{ 
-                      background: 'var(--primary)',
                       width: `${roadmap.length > 0 
                         ? (Object.keys(watched).filter(key => watched[key]).length / 
                            roadmap.reduce((total, chapter) => total + (chapter.subtopics?.length || 0), 0)) * 100 
@@ -262,7 +261,7 @@ function LearnCoursePage() {
                     }}
                   ></div>
                 </div>
-                <span className="ml-3 text-xs whitespace-nowrap" style={{ color: 'var(--muted-foreground)' }}>
+                <span className="ml-3 text-xs whitespace-nowrap text-muted-foreground">
                   {Object.keys(watched).filter(key => watched[key]).length} / {roadmap.reduce((total, chapter) => total + (chapter.subtopics?.length || 0), 0)}
                 </span>
               </div>
@@ -276,7 +275,7 @@ function LearnCoursePage() {
                   <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-semibold">
                     {idx + 1}
                   </div>
-                  <div className="font-semibold text-sm" style={{ color: 'var(--sidebar-foreground)' }}>{chapter.title}</div>
+                  <div className="font-semibold text-sm text-sidebar-foreground">{chapter.title}</div>
                 </div>
               <ul className="ml-10 space-y-1">
                 {(chapter.subtopics || []).map((subtopic, sidx) => {
@@ -288,22 +287,16 @@ function LearnCoursePage() {
                       key={sidx}
                       className={`cursor-pointer px-3 py-2 rounded-lg text-sm transition-all duration-200 flex items-center justify-between group ${
                         isActive 
-                          ? "shadow-md"
-                          : ""
+                          ? "bg-primary text-primary-foreground shadow-md"
+                          : "text-sidebar-foreground hover:bg-sidebar-accent"
                       }`}
-                      style={{
-                        background: isActive ? 'var(--primary)' : 'transparent',
-                        color: isActive ? 'var(--primary-foreground)' : 'var(--sidebar-foreground)',
-                      }}
                       onClick={() => setSelectedKey(lessonKey)}
                     >
                       <span className="flex-1">{subtopic}</span>
                       {isWatched && (
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center`}
-                          style={{
-                            background: isActive ? 'var(--primary-foreground)' : '#22d3ee',
-                            color: isActive ? 'var(--primary)' : 'white',
-                          }}>
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                          isActive ? 'bg-primary-foreground text-primary' : 'bg-accent text-white'
+                        }`}>
                           <span className="text-xs">✓</span>
                         </div>
                       )}
@@ -317,15 +310,15 @@ function LearnCoursePage() {
       </div>
                
       {/* Main section: show video */}
-  <div className="flex-1 overflow-y-auto" style={{ background: 'var(--background)' }}>
+      <div className="flex-1 overflow-y-auto bg-background">
         <div className="max-w-4xl mx-auto p-8">
           {!selectedKey && (
             <div className="flex flex-col items-center justify-center h-96 text-center">
-              <div className="w-24 h-24 rounded-full flex items-center justify-center mb-4" style={{ background: 'var(--muted)' }}>
+              <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-4">
                 <span className="text-3xl">📚</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--foreground)' }}>Welcome to Your Course</h3>
-              <p style={{ color: 'var(--muted-foreground)' }}>Select a lesson from the sidebar to start learning</p>
+              <h3 className="text-xl font-semibold mb-2 text-foreground">Welcome to Your Course</h3>
+              <p className="text-muted-foreground">Select a lesson from the sidebar to start learning</p>
             </div>
           )}
             {selectedKey && (() => {
@@ -336,8 +329,8 @@ function LearnCoursePage() {
               const contentRow = getContentForSubtopic(chapterTitle, subtopicName);
               // Find chapter explanation (where subtopicName === chapterTitle)
               const chapterExplanation = getContentForSubtopic(chapterTitle, chapterTitle);
-              if (!videoData) return <div className="text-gray-400">No video found for this subtopic.</div>;
-              if (videoData.skipped) return <div className="text-gray-400">This subtopic was skipped.</div>;
+              if (!videoData) return <div className="text-muted-foreground">No video found for this subtopic.</div>;
+              if (videoData.skipped) return <div className="text-muted-foreground">This subtopic was skipped.</div>;
               let videoSection = null;
               if (videoData.customUrl) {
                 // Extract YouTube video ID from URL
@@ -388,15 +381,11 @@ function LearnCoursePage() {
                   {/* Video Header with Title and Watched Checkbox */}
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--foreground)' }}>{subtopicName}</h1>
-                      <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>{chapterTitle}</p>
+                      <h1 className="text-2xl font-bold mb-1 text-foreground">{subtopicName}</h1>
+                      <p className="text-sm text-muted-foreground">{chapterTitle}</p>
                     </div>
                     <label
-                      className="flex items-center gap-2 cursor-pointer select-none px-4 py-2 rounded-lg border transition-colors"
-                      style={{
-                        background: 'var(--muted)',
-                        borderColor: 'var(--border)',
-                      }}
+                      className="flex items-center gap-2 cursor-pointer select-none px-4 py-2 rounded-lg border border-border bg-muted transition-colors"
                     >
                       <input
                         type="checkbox"
@@ -405,7 +394,7 @@ function LearnCoursePage() {
                         className="accent-cyan-400 w-5 h-5"
                         disabled={loadingProgress}
                       />
-                      <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>
+                      <span className="text-sm font-medium text-foreground">
                         {loadingProgress ? "Saving..." : "Mark as Watched"}
                       </span>
                     </label>
@@ -418,23 +407,23 @@ function LearnCoursePage() {
 
                   {/* Video Details */}
                   <div className="mb-8">
-                    <h3 className="text-lg font-semibold mb-3" style={{ color: 'var(--foreground)' }}>
+                    <h3 className="text-lg font-semibold mb-3 text-foreground">
                       {videoData.snippet?.title || subtopicName}
                     </h3>
                     {videoData.snippet?.channelTitle && (
-                      <p className="text-sm mb-4" style={{ color: 'var(--muted-foreground)' }}>By {videoData.snippet.channelTitle}</p>
+                      <p className="text-sm mb-4 text-muted-foreground">By {videoData.snippet.channelTitle}</p>
                     )}
                   </div>
 
                   {/* Chapter Introduction */}
                   {subtopicName === chapterTitle && (
-                    <div className="mb-8 p-8 rounded-lg" style={{ background: 'var(--muted)', borderLeft: '4px solid var(--primary)' }}>
-                      <h4 className="text-xl font-semibold mb-4" style={{ color: 'var(--primary)' }}>Chapter Overview</h4>
+                    <div className="mb-8 p-8 rounded-lg bg-muted border-l-4 border-primary">
+                      <h4 className="text-xl font-semibold mb-4 text-primary">Chapter Overview</h4>
                       {chapterExplanation && chapterExplanation.contentData?.content ? (
                         <LaTeXRenderer content={chapterExplanation.contentData.content} />
                       ) : (
                         <div className="text-center py-4">
-                          <p style={{ color: 'var(--muted-foreground)' }} className="mb-3">
+                          <p className="text-muted-foreground mb-3">
                             Chapter overview content not generated yet.
                           </p>
                           <Button
@@ -447,7 +436,6 @@ function LearnCoursePage() {
                               }
                             }}
                             size="sm"
-                            style={{ background: 'var(--primary)', color: 'var(--primary-foreground)' }}
                           >
                             Generate Chapter Overview
                           </Button>
@@ -457,24 +445,24 @@ function LearnCoursePage() {
                   )}
 
                   {/* Lesson Content */}
-                  <div className="p-8 rounded-lg border" style={{ background: 'var(--muted)', borderColor: 'var(--border)' }}>
-                    <h4 className="text-xl font-semibold mb-4" style={{ color: 'var(--foreground)' }}>Lesson Content</h4>
+                  <div className="p-8 rounded-lg border bg-muted border-border">
+                    <h4 className="text-xl font-semibold mb-4 text-foreground">Lesson Content</h4>
                     {generatingContent ? (
                       <div className="flex items-center justify-center py-8">
                         <div className="flex flex-col items-center gap-4">
                           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                          <p style={{ color: 'var(--muted-foreground)' }}>Generating content for this lesson...</p>
+                          <p className="text-muted-foreground">Generating content for this lesson...</p>
                         </div>
                       </div>
                     ) : contentRow && contentRow.contentData?.content ? (
                       <LaTeXRenderer content={contentRow.contentData.content} />
                     ) : (
                       <div className="flex flex-col items-center gap-4 py-8">
-                        <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: 'var(--background)' }}>
+                        <div className="w-16 h-16 rounded-full bg-background flex items-center justify-center">
                           <span className="text-2xl">📝</span>
                         </div>
                         <div className="text-center">
-                          <p className="mb-3" style={{ color: 'var(--muted-foreground)' }}>
+                          <p className="text-muted-foreground mb-3">
                             Content for this lesson hasn't been generated yet.
                           </p>
                           <Button
@@ -487,7 +475,6 @@ function LearnCoursePage() {
                               }
                             }}
                             className="px-6 py-2"
-                            style={{ background: '#22d3ee', color: 'white' }}
                           >
                             Generate Content
                           </Button>
