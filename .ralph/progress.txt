@@ -180,3 +180,22 @@ Files changed:
 - Every page now follows the same color token system consistently
 
 ---
+
+## 2026-08-18 - US-007
+**Redesign the course maker experience**
+
+Files changed:
+- `app/createCourse/page.jsx` — Replaced inline styles with Tailwind classes for stepper
+- `app/createCourse/_components/AlterRoadmap.jsx` — Fixed border colors and hover states
+- `app/createCourse/[courseId]/chooseVideos/page.jsx` — Replaced all inline styles with Tailwind classes
+
+**Learnings:**
+- Replaced all inline `style={{ background: 'var(--primary)' }}` with Tailwind `bg-primary`
+- Replaced hardcoded `#22d3ee` with design system `bg-accent` / `text-accent`
+- Fixed `border-chart-5` (chart color used as border) with proper `border-border`
+- Added hover states and transition colors to all buttons
+- Custom URL input now uses `border-input` and `focus:ring-primary` for consistency
+- Removed stale "DESCRIPTION" text from chapter cards
+- All course creation pages now use consistent Tailwind utility classes
+
+---

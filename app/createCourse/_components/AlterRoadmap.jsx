@@ -297,7 +297,7 @@ export default function AlterRoadmap() {
                 disabled={editingTopicId === topic.id}
               >
                 {({ attributes, listeners }) => (
-                  <div className="border border-chart-5 rounded-xl shadow-sm bg-card">
+                    <div className="border border-border rounded-xl shadow-sm bg-card">
                     {/* Major Topic Header */}
                     <div className="flex justify-between items-center p-2">
                       <div className="flex items-center gap-2">
@@ -308,7 +308,7 @@ export default function AlterRoadmap() {
                           aria-label={
                             expanded[topic.id] ? "Collapse" : "Expand"
                           }
-                          className="p-1 rounded hover:bg-cyan-900/40 transition-colors"
+                          className="p-1 rounded hover:bg-muted transition-colors"
                         >
                           {expanded[topic.id] ? (
                             <ChevronDown size={18} />
@@ -430,7 +430,7 @@ export default function AlterRoadmap() {
                                           ref={dragProvided.innerRef}
                                           {...dragProvided.draggableProps}
                                           {...dragProvided.dragHandleProps}
-                                          className="p-2 border border-chart-5 rounded-lg shadow-sm flex justify-between items-center bg-muted text-foreground"
+                                          className="p-2 border border-border rounded-lg shadow-sm flex justify-between items-center bg-muted text-foreground"
                                         >
                                           {editingSub &&
                                           editingSub.topicId === topic.id &&

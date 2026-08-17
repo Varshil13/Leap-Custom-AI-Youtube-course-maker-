@@ -134,9 +134,9 @@ export default function CreateCoursePage() {
   };
 
   return (
-    <div style={{ background: 'var(--background)' }}>
+    <div className="bg-background min-h-screen">
       {/* Header / Stepper */}
-      <div className="flex flex-col items-center justify-center mt-10">
+      <div className="flex flex-col items-center justify-center pt-10">
         <a href="/dashboard" className="text-xs text-primary hover:underline mb-4">
           &larr; Back to Dashboard
         </a>
@@ -145,24 +145,24 @@ export default function CreateCoursePage() {
         </h1>
         <div className="flex mt-10">
           {StepperOptions.map((step, index) => (
-            <div className="flex items-center " key={index}>
-              <div className="flex flex-col items-center w-[50px] md:w-[100px] ">
+            <div className="flex items-center" key={index}>
+              <div className="flex flex-col items-center w-[50px] md:w-[100px]">
                 <div
                   className={`p-3 rounded-full text-white ${
-                    activeStep >= index ? 'bg-primary' : ''
+                    activeStep >= index ? 'bg-primary' : 'bg-muted text-muted-foreground'
                   }`}
-                  style={{ background: activeStep >= index ? 'var(--primary)' : 'var(--muted)' }}
                 >
                   {step.icon}
                 </div>
-                <h2 className="hidden md:block md:text-sm font-bold text-foreground">
+                <h2 className="hidden md:block md:text-sm font-bold text-foreground mt-2">
                   {step.label}
                 </h2>
               </div>
-              {index != StepperOptions?.length - 1 && (
+              {index !== StepperOptions?.length - 1 && (
                 <div
-                  className={`h-1 w-[50px] md:w-[100px] rounded-full lg:w-[170px] ${activeStep > index ? 'bg-primary' : ''}`}
-                  style={{ background: activeStep > index ? 'var(--primary)' : 'var(--muted)' }}
+                  className={`h-1 w-[50px] md:w-[100px] rounded-full lg:w-[170px] ${
+                    activeStep > index ? 'bg-primary' : 'bg-muted'
+                  }`}
                 ></div>
               )}
             </div>

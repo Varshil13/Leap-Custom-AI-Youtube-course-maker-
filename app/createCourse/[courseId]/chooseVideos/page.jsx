@@ -135,7 +135,7 @@ const loadExistingVideos = async () => {
 
 
   return (
-    <div className="max-w-3xl mx-auto mt-10 p-6" style={{ background: 'var(--background)' }}>
+    <div className="max-w-3xl mx-auto mt-10 p-6 bg-background">
       <LoadingDialouge loading={loading} activeStep={'Fetching Videos'} />
       <LoadingDialouge loading={finishing} activeStep={'Finishing Course'} />
       <a href="/dashboard" className="text-xs text-primary hover:underline mb-4 inline-block">
@@ -145,23 +145,22 @@ const loadExistingVideos = async () => {
       <p className="text-sm text-muted-foreground text-center mb-6">
         Select videos for each lesson in your course
       </p>
-      {!course && <div>Loading course...</div>}
+      {!course && <div className="text-muted-foreground">Loading course...</div>}
       {course && (
         <>
           <div className="mb-8">
             <h3 className="font-semibold text-lg text-foreground">Course: {course.name}</h3>
-            <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>{course.description}</p>
+            <p className="text-sm text-muted-foreground">{course.description}</p>
           </div>
           <div>
             {roadmap.map((chapter, index) => (
-              <div key={index} className="border p-4 rounded-lg mb-3" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+              <div key={index} className="border border-border p-4 rounded-lg mb-3 bg-card">
                 <div className="flex items-center gap-3">
                   <h3 className="bg-primary h-10 w-10 rounded-full text-white text-center flex items-center justify-center">
                     {index + 1}
                   </h3>
                   <h3 className="font-medium text-lg text-foreground">{chapter.title}</h3>
                 </div>
-                <p className="text-sm mt-1" style={{ color: 'var(--muted-foreground)' }}>DESCRIPTION</p>
                 <div className="mt-2">
                   <h4 className="font-semibold text-foreground">Lessons:</h4>
                   <ul className="list-inside mt-1">
@@ -171,8 +170,7 @@ const loadExistingVideos = async () => {
                       return (
                         <li
                           key={lessonIndex}
-                          className="text-sm mb-4"
-                          style={{ color: 'var(--foreground)' }}
+                          className="text-sm mb-4 text-foreground"
                         >
                           <div className="flex items-center gap-2 mb-1">
                             <span className="bg-primary h-7 w-7 rounded-full text-white text-center flex items-center justify-center font-semibold">
@@ -183,22 +181,20 @@ const loadExistingVideos = async () => {
                           <div className="flex gap-4 flex-wrap">
                             {/* Show existing selected video if any */}
                             {selectedVideos[lessonKey] && (
-                              <div className="border-2 rounded-lg p-2 w-48 flex flex-col items-center"
-                                style={{ borderColor: '#22d3ee' }}>
+                              <div className="border-2 border-accent rounded-lg p-2 w-48 flex flex-col items-center">
                                 <img
                                   src={selectedVideos[lessonKey].snippet?.thumbnails?.medium?.url || "/placeholder.png"}
                                   alt="Selected Video"
                                   className="w-full h-24 object-cover rounded mb-2"
                                 />
-                                <div className="text-xs mb-1 font-semibold" style={{ color: '#22d3ee' }}>
+                                <div className="text-xs mb-1 font-semibold text-accent">
                                   {selectedVideos[lessonKey].snippet?.channelTitle || "Custom Video"}
                                 </div>
-                                <div className="text-xs mb-2" style={{ color: 'var(--muted-foreground)' }}>
+                                <div className="text-xs mb-2 text-muted-foreground">
                                   {selectedVideos[lessonKey].snippet?.title || selectedVideos[lessonKey].customUrl || "Selected"}
                                 </div>
                                 <button 
-                                  className="px-3 py-1 rounded text-xs"
-                                  style={{ background: '#22d3ee', color: 'white' }}
+                                  className="px-3 py-1 rounded text-xs bg-accent text-white hover:bg-accent/80 transition-colors"
                                   onClick={async () => {
                                     // Deselect the video
                                     setSelectedVideos(prev => ({ ...prev, [lessonKey]: null }));
@@ -223,30 +219,28 @@ const loadExistingVideos = async () => {
                             
                             {/* Show YouTube videos if no selection made */}
                             {!selectedVideos[lessonKey] && videos.length === 0 && (
-                              <div className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
+                              <div className="text-xs text-muted-foreground">
                                 No videos found.
                               </div>
                             )}
                             {!selectedVideos[lessonKey] && videos.map((video, vidIdx) => (
                               <div
                                 key={vidIdx}
-                                className="border rounded-lg p-2 w-48 flex flex-col items-center hover:border-primary cursor-pointer"
-                                style={{ borderColor: 'var(--border)', background: 'var(--muted)' }}
+                                className="border border-border rounded-lg p-2 w-48 flex flex-col items-center hover:border-primary cursor-pointer bg-muted transition-colors"
                               >
                                 <img
                                   src={video.snippet?.thumbnails?.medium?.url}
                                   alt="Thumbnail"
                                   className="w-full h-24 object-cover rounded mb-2"
                                 />
-                                <div className="text-xs mb-1" style={{ color: 'var(--foreground)' }}>
+                                <div className="text-xs mb-1 text-foreground">
                                   {video.snippet?.channelTitle}
                                 </div>
-                                <div className="text-xs mb-2" style={{ color: 'var(--muted-foreground)' }}>
+                                <div className="text-xs mb-2 text-muted-foreground">
                                   {video.snippet?.title}
                                 </div>
                                 <button 
-                                  className="px-3 py-1 rounded text-xs"
-                                  style={{ background: 'var(--primary)', color: 'white' }}
+                                  className="px-3 py-1 rounded text-xs bg-primary text-white hover:bg-primary/80 transition-colors"
                                   onClick={() => setSelectedVideos(prev => ({ ...prev, [lessonKey]: video }))}
                                 >
                                   Select
@@ -258,15 +252,13 @@ const loadExistingVideos = async () => {
                             {!selectedVideos[lessonKey] && (
                               <>
                                 <button
-                                  className="px-3 py-1 rounded text-xs h-fit"
-                                  style={{ background: 'var(--muted)', color: 'var(--muted-foreground)' }}
+                                  className="px-3 py-1 rounded text-xs h-fit bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
                                   onClick={() => setSelectedVideos(prev => ({ ...prev, [lessonKey]: { skipped: true } }))}
                                 >
                                   Skip
                                 </button>
                                 <button
-                                  className="px-3 py-1 rounded text-xs h-fit"
-                                  style={{ background: 'var(--accent)', color: 'var(--accent-foreground)' }}
+                                  className="px-3 py-1 rounded text-xs h-fit bg-accent text-accent-foreground hover:bg-accent/80 transition-colors"
                                   onClick={() => setShowCustomInput(prev => ({ ...prev, [lessonKey]: true }))}
                                 >
                                   Add Custom URL
@@ -282,12 +274,10 @@ const loadExistingVideos = async () => {
                                   placeholder="Paste YouTube URL"
                                   value={customUrls[lessonKey] || ""}
                                   onChange={(e) => setCustomUrls(prev => ({ ...prev, [lessonKey]: e.target.value }))}
-                                  className="border rounded px-2 py-1 text-xs"
-                                  style={{ borderColor: 'var(--input)', background: 'var(--background)', color: 'var(--foreground)' }}
+                                  className="border border-input rounded px-2 py-1 text-xs bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                                 />
                                 <button
-                                  className="px-2 py-1 rounded text-xs"
-                                  style={{ background: '#22d3ee', color: 'white' }}
+                                  className="px-2 py-1 rounded text-xs bg-accent text-white hover:bg-accent/80 transition-colors"
                                   onClick={() => {
                                     setSelectedVideos(prev => ({ ...prev, [lessonKey]: { customUrl: customUrls[lessonKey] } }));
                                     setShowCustomInput(prev => ({ ...prev, [lessonKey]: false }));
@@ -311,8 +301,7 @@ const loadExistingVideos = async () => {
           {/* Only Finish Button */}
           <div className="mt-8 text-center flex gap-4 justify-center">
             <button
-              className="px-6 py-3 rounded-lg font-semibold"
-              style={{ background: '#22d3ee', color: 'white' }}
+              className="px-6 py-3 rounded-lg font-semibold bg-primary text-white hover:bg-primary/80 transition-colors"
               onClick={async () => {
                 try {
                   setFinishing(true);
