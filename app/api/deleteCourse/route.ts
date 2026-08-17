@@ -1,14 +1,30 @@
 import { db } from '@/services/db';
 import { CourseDetails, CourseVideos, CourseContent, UserProgress, Certificates } from '@/services/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 
 export async function DELETE(req: Request) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const courseId = searchParams.get('courseId');
     if (!courseId) {
       return NextResponse.json({ error: 'Missing courseId' }, { status: 400 });
+    }
+
+    // Verify the user owns this course before deleting
+    const courseRows = await db
+      .select()
+      .from(CourseDetails)
+      .where(eq(CourseDetails.courseId, courseId));
+
+    if (!courseRows.length) {
+      return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
 
     // Delete related data (order: progress, videos, content, certificates, then course)

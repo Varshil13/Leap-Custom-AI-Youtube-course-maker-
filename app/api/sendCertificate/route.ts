@@ -2,14 +2,39 @@ import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { db } from '@/services/db';
 import { Certificates } from '@/services/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { auth } from '@clerk/nextjs/server';
 
 export async function POST(request: NextRequest) {
   let certificateId: number;
   
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { certificateId: certId, pdfBase64, userEmail, userName, courseName } = await request.json();
     certificateId = certId;
+
+    if (!certificateId || !pdfBase64 || !userEmail) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Verify the certificate belongs to this user
+    const certRows = await db
+      .select()
+      .from(Certificates)
+      .where(
+        and(
+          eq(Certificates.id, certificateId),
+          eq(Certificates.userId, userId)
+        )
+      );
+
+    if (!certRows.length) {
+      return NextResponse.json({ error: 'Certificate not found or unauthorized' }, { status: 404 });
+    }
 
     // Create Gmail transporter
     const transporter = nodemailer.createTransport({

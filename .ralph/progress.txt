@@ -81,3 +81,28 @@ Files changed:
 - No `.env.example` file exists
 
 ---
+
+## 2026-08-18 - US-003
+**Fix required API and integration failures**
+
+Files changed:
+- `app/api/deleteCourse/route.ts` — Added Clerk auth + course ownership verification
+- `app/api/sendCertificate/route.ts` — Added Clerk auth + certificate ownership verification
+- `app/api/genRoadmap/route.ts` — Added Clerk auth
+- `app/api/genSubtopicContent/route.ts` — Added Clerk auth
+- `drizzle.config.js` — Replaced hardcoded credentials with env var
+- `app/api/genCourseDetails/route.ts` — REMOVED (orphaned, no callers)
+- `app/createCourse/[courseId]/page.jsx` — REMOVED (empty, blocked build)
+- `.env.example` — Created
+- `.ralph/docs/api-audit.md` — Updated with fix status
+
+**Learnings:**
+- All 6 API routes now require Clerk authentication
+- Production build now passes (was blocked by empty page.jsx)
+- Hardcoded DB credentials removed from repo
+- `sendCertificate` now verifies certificate ownership before sending
+- `deleteCourse` now verifies course exists before cascade delete
+- No broken integrations existed — all external services were already working
+- The real issues were security gaps (missing auth) and dead code, not broken APIs
+
+---

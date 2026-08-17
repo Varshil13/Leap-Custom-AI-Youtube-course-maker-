@@ -251,11 +251,11 @@ Text drawn, PDF saved → 872 bytes
 
 | Attribute | Detail |
 |-----------|--------|
-| Auth | ❌ None |
+| Auth | ✅ Clerk (`auth()`) — **FIXED in US-003** |
 | Input | `{ userInputPrompt: string }` |
 | Calls | `generateAIResponse()` → Groq API |
 | Output | `{ text: string, files: AIFile[] }` |
-| Status | **WORKING** (depends on Groq API) |
+| Status | **WORKING** |
 
 ### 7.2 `/api/genCourseDetails` — POST
 
@@ -265,17 +265,17 @@ Text drawn, PDF saved → 872 bytes
 | Input | `{ prompt: string }` |
 | Calls | `generateAIResponse()` → Groq API with retry (3 attempts, exponential backoff for 503) |
 | Output | `{ text: string, files: AIFile[] }` |
-| Status | **ORPHANED** — No client code calls this route |
+| Status | **REMOVED in US-003** — orphaned, no client code referenced it |
 
 ### 7.3 `/api/genSubtopicContent` — POST
 
 | Attribute | Detail |
 |-----------|--------|
-| Auth | ❌ None |
+| Auth | ✅ Clerk (`auth()`) — **FIXED in US-003** |
 | Input | `{ courseName, courseDescription, level, chapterTitle, subtopicName, language }` |
 | Calls | `generateAIResponse()` → Groq API |
 | Output | `{ success: boolean, text: string }` |
-| Status | **WORKING** (depends on Groq API) |
+| Status | **WORKING** |
 
 ### 7.4 `/api/progress` — GET/POST
 
@@ -292,10 +292,10 @@ Text drawn, PDF saved → 872 bytes
 
 | Attribute | Detail |
 |-----------|--------|
-| Auth | ❌ None |
+| Auth | ✅ Clerk (`auth()`) — **FIXED in US-003** |
 | Input | `?courseId=<uuid>` |
 | Cascades | user_progress → course_videos → course_content → certificates → CourseDetails |
-| Status | **WORKING but INSECURE** — no auth, any request can delete any course |
+| Status | **WORKING** |
 
 ### 7.6 `/api/genCertificate` — POST
 
@@ -311,11 +311,11 @@ Text drawn, PDF saved → 872 bytes
 
 | Attribute | Detail |
 |-----------|--------|
-| Auth | ❌ None |
+| Auth | ✅ Clerk (`auth()`) — **FIXED in US-003** |
 | Input | `{ certificateId, pdfBase64, userEmail, userName, courseName }` |
 | Calls | Nodemailer (Gmail SMTP) |
 | DB update | Sets certificate status to 'sent' or 'failed' |
-| Status | **WORKING but INSECURE** — no auth, any request can send emails |
+| Status | **WORKING** |
 
 ---
 
@@ -343,9 +343,9 @@ Text drawn, PDF saved → 872 bytes
 
 | Item | File | Status |
 |------|------|--------|
-| Empty page | `app/createCourse/[courseId]/page.jsx` | **EMPTY** — blocks build |
+| ~~Empty page~~ | ~~`app/createCourse/[courseId]/page.jsx`~~ | **REMOVED in US-003** |
 | Empty renderer | `components/LaTexRenderer.jsx` | **EMPTY** — 0 bytes |
-| Orphaned API route | `app/api/genCourseDetails/route.ts` | **ORPHANED** — no client calls it |
+| ~~Orphaned API route~~ | ~~`app/api/genCourseDetails/route.ts`~~ | **REMOVED in US-003** |
 | Unused components | `Footer.jsx`, `Features.jsx`, `Pricing.jsx` | **EMPTY** — placeholders |
 | `/profile` route | Protected in middleware | **NO PAGE EXISTS** |
 
@@ -354,44 +354,40 @@ Text drawn, PDF saved → 872 bytes
 ## 10. Security Findings
 
 ### Critical
-1. **Hardcoded DB credentials** in `drizzle.config.js` — full connection string with password committed to repo
+1. ~~**Hardcoded DB credentials** in `drizzle.config.js`~~ — **FIXED in US-003** (now uses env var)
 2. **Client-side DB access** — Drizzle client imported in `'use client'` components, connection string exposed in browser bundle via `NEXT_PUBLIC_DATABASE_URL`
-3. **`/api/deleteCourse` has no auth** — any HTTP request can delete any course
-4. **`/api/sendCertificate` has no auth** — any HTTP request can send emails to any address
+3. ~~**`/api/deleteCourse` has no auth**~~ — **FIXED in US-003** (now requires Clerk auth)
+4. ~~**`/api/sendCertificate` has no auth**~~ — **FIXED in US-003** (now requires Clerk auth)
 5. **YouTube API key exposed client-side** via `NEXT_PUBLIC_` prefix
 
 ### High
-6. **5 of 7 API routes have no auth checks** — only `/api/progress` and `/api/genCertificate` are protected
+6. ~~**5 of 7 API routes have no auth checks**~~ — **FIXED in US-003** (now all 6 routes require auth; 1 orphaned route removed)
 7. **No rate limiting** on any API endpoint
 8. **No input validation** on most endpoints — user-provided strings used directly in prompts and DB queries
 
 ### Medium
-9. **No `.env.example`** — no documentation of required env vars for developers
+9. ~~**No `.env.example`**~~ — **FIXED in US-003** (`.env.example` created)
 10. **No CORS configuration** — defaults to same-origin only (Next.js default, acceptable)
 
 ---
 
-## 11. Required Fixes for US-003
+## 11. Fixes Applied in US-003
 
-Based on this audit, the following integrations require fixes for US-003:
+### Completed
+1. ✅ Added Clerk auth to `/api/deleteCourse` — prevents unauthorized course deletion
+2. ✅ Added Clerk auth to `/api/sendCertificate` — prevents email abuse, verifies certificate ownership
+3. ✅ Added Clerk auth to `/api/genRoadmap` — prevents API abuse
+4. ✅ Added Clerk auth to `/api/genSubtopicContent` — prevents API abuse
+5. ✅ Removed hardcoded credentials from `drizzle.config.js` — now uses env var
+6. ✅ Removed orphaned `/api/genCourseDetails` route — dead code
+7. ✅ Removed empty `app/createCourse/[courseId]/page.jsx` — was blocking production build
+8. ✅ Created `.env.example` documentation
 
-### Must Fix (Required for application function)
-- **No broken integrations found** — all 6 external services are WORKING
-
-### Should Fix (Security/functionality improvements)
-1. Add auth to `/api/deleteCourse` — prevent unauthorized course deletion
-2. Add auth to `/api/sendCertificate` — prevent email abuse
-3. Add auth to AI generation routes (`/api/genRoadmap`, `/api/genSubtopicContent`) — prevent API abuse
-4. Remove hardcoded credentials from `drizzle.config.js` — use env var
-5. Move client-side DB access to API routes — prevent connection string exposure
-6. Remove or use orphaned `/api/genCourseDetails` route
-7. Remove empty `app/createCourse/[courseId]/page.jsx` — blocks production build
-8. Add `.env.example` documentation
-
-### Optional Cleanup
-- Remove 11 unused npm packages
-- Rename `services/gemini.ts` to `services/groq.ts`
-- Consolidate DnD libraries (keep one, remove the other)
+### Remaining (not in scope for US-003)
+- Move client-side DB access to API routes (architectural change, belongs to later stories)
+- Remove unused npm packages (cleanup, not a fix)
+- Add rate limiting (enhancement, not a fix)
+- Add input validation (enhancement, not a fix)
 
 ---
 
@@ -409,4 +405,4 @@ Based on this audit, the following integrations require fixes for US-003:
 | `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | `@clerk/nextjs` | ✅ Yes | Not verified |
 | `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | `@clerk/nextjs` | ✅ Yes | Not verified |
 
-**No `.env.example` file exists.**
+**`.env.example` file created in US-003.**
