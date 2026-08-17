@@ -90,7 +90,7 @@
         "Changes are implemented rather than merely documented"
       ],
       "priority": 5,
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-006",

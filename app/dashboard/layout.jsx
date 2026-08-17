@@ -7,18 +7,19 @@ import { usePathname } from 'next/navigation';
 function DashboardLayout({ children }) {
     const pathname = usePathname();
     const isLearnCourse = pathname?.includes('/dashboard/learnCourse/');
+    
+    if (isLearnCourse) {
+        return <>{children}</>;
+    }
+
     return (
-        <div>
-            {!isLearnCourse && (
-                <div className='md:w-64 hidden md:block' >
-                    <Sidebar />
-                </div>
-            )}
-            <div className={!isLearnCourse ? 'md:ml-64' : ''}>
+        <div className="min-h-screen bg-background">
+            <Sidebar />
+            <div className="md:ml-64">
                 <Header />
-                <div className='p-10'>
-                {children}
-                </div>
+                <main className="p-6 md:p-8">
+                    {children}
+                </main>
             </div>
         </div>
     )

@@ -1,17 +1,18 @@
 'use client'
 import React from 'react'
 import Image from 'next/image'
-import { HiOutlineHome, HiOutlineSquare3Stack3D } from 'react-icons/hi2'
+import { HiOutlineHome, HiOutlinePlusCircle } from 'react-icons/hi2'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 
 function Sidebar() {
   const MenuItems = [
-    { id: 1, name: 'Home', icon: <HiOutlineHome size={20} />, path: '/dashboard' },
-    { id: 2, name: 'Completed', icon: <HiOutlineSquare3Stack3D size={20} />, path: '/dashboard/completed' },
+    { id: 1, name: 'My Courses', icon: <HiOutlineHome size={20} />, path: '/dashboard' },
+    { id: 2, name: 'New Course', icon: <HiOutlinePlusCircle size={20} />, path: '/createCourse' },
   ]
 
   const path = usePathname()
+  const isCreateFlow = path?.startsWith('/createCourse')
 
   return (
     <aside
@@ -28,7 +29,9 @@ function Sidebar() {
       <nav className='flex-1 p-4'>
         <ul className='space-y-1'>
           {MenuItems.map((item) => {
-            const isActive = item.path === path
+            const isActive = item.path === '/dashboard' 
+              ? path === '/dashboard' || (path?.startsWith('/dashboard') && !isCreateFlow)
+              : isCreateFlow
             return (
               <li key={item.id}>
                 <Link
@@ -47,6 +50,12 @@ function Sidebar() {
           })}
         </ul>
       </nav>
+
+      <div className="p-4 border-t" style={{ borderColor: 'var(--sidebar-border)' }}>
+        <p className="text-xs text-muted-foreground text-center">
+          LEAP Learning Platform
+        </p>
+      </div>
     </aside>
   )
 }

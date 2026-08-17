@@ -135,3 +135,30 @@ Files changed:
 - All content typography (headings, paragraphs, lists, code) now follows consistent sizing and spacing
 
 ---
+
+## 2026-08-18 - US-005
+**UI redesign pass 1 - information architecture**
+
+Files changed:
+- `app/page.js` — Simplified landing page structure
+- `app/_components/Header.jsx` — Added navigation with Sign In / Get Started links
+- `app/_components/Hero.jsx` — Removed scroll lock, improved layout, added dual CTAs
+- `app/dashboard/layout.jsx` — Simplified layout, separate course player path
+- `app/dashboard/page.jsx` — Replaced Addcourse with clear "My Courses" heading
+- `app/dashboard/_components/Sidebar.jsx` — Replaced sparse nav with "My Courses" + "New Course"
+- `app/dashboard/completed/page.jsx` — Added subtitle and consistent heading
+- `app/dashboard/learnCourse/[courseId]/page.jsx` — Added "Back to Dashboard" link in sidebar
+- `app/createCourse/page.jsx` — Added "Back to Dashboard" link
+- `app/createCourse/[courseId]/chooseVideos/page.jsx` — Added "Back to Dashboard" link and subtitle
+
+**Learnings:**
+- Landing page now has proper navigation header with Sign In / Get Started
+- Dashboard sidebar simplified to 2 clear items: My Courses + New Course
+- Dead "Upgrade" page removed from navigation (page still exists but not linked)
+- Every page now has a "Back to Dashboard" navigation link
+- Course player has clear breadcrumb-style navigation back to dashboard
+- Consistent heading + subtitle pattern across all dashboard pages
+- Removed scroll lock from Hero section that prevented page scrolling
+- Dashboard layout simplified with cleaner component hierarchy
+
+---

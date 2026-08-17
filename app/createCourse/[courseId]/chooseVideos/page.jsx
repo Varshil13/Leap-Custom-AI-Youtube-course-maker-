@@ -138,7 +138,13 @@ const loadExistingVideos = async () => {
     <div className="max-w-3xl mx-auto mt-10 p-6" style={{ background: 'var(--background)' }}>
       <LoadingDialouge loading={loading} activeStep={'Fetching Videos'} />
       <LoadingDialouge loading={finishing} activeStep={'Finishing Course'} />
-      <h2 className="font-bold text-2xl mb-6 text-center text-foreground">Choose Videos</h2>
+      <a href="/dashboard" className="text-xs text-primary hover:underline mb-4 inline-block">
+        &larr; Back to Dashboard
+      </a>
+      <h2 className="font-bold text-2xl mb-2 text-center text-foreground">Choose Videos</h2>
+      <p className="text-sm text-muted-foreground text-center mb-6">
+        Select videos for each lesson in your course
+      </p>
       {!course && <div>Loading course...</div>}
       {course && (
         <>

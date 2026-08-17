@@ -137,6 +137,9 @@ export default function CreateCoursePage() {
     <div style={{ background: 'var(--background)' }}>
       {/* Header / Stepper */}
       <div className="flex flex-col items-center justify-center mt-10">
+        <a href="/dashboard" className="text-xs text-primary hover:underline mb-4">
+          &larr; Back to Dashboard
+        </a>
         <h1 className="text-3xl font-bold tracking-tight sm:text-6xl text-foreground">
           Create Course
         </h1>

@@ -240,9 +240,12 @@ function LearnCoursePage() {
   return (
   <div className="flex h-screen" style={{ background: 'var(--background)' }}>
       {/* Sidebar */}
-      <div className="w-80 shadow-lg border-r" style={{ background: 'var(--sidebar)', borderColor: 'var(--sidebar-border)' }}>
-        <div className="p-6 border-b" style={{ borderColor: 'var(--sidebar-border)' }}>
-          <h2 className="font-bold text-xl" style={{ color: 'var(--sidebar-foreground)' }}>Course Content</h2>
+      <div className="w-80 shadow-lg border-r flex flex-col" style={{ background: 'var(--sidebar)', borderColor: 'var(--sidebar-border)' }}>
+        <div className="p-4 border-b" style={{ borderColor: 'var(--sidebar-border)' }}>
+          <a href="/dashboard" className="text-xs text-primary hover:underline mb-2 inline-block">
+            &larr; Back to Dashboard
+          </a>
+          <h2 className="font-bold text-lg" style={{ color: 'var(--sidebar-foreground)' }}>Course Content</h2>
           {course && (
             <div className="mt-2">
               <p className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>{course.name}</p>
