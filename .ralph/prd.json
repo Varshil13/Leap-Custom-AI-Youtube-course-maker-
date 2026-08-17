@@ -37,7 +37,7 @@
         "An API audit document is created and committed"
       ],
       "priority": 2,
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-003",

@@ -55,3 +55,29 @@ Files changed:
 - The /profile route is protected in middleware but no page exists for it
 
 ---
+
+## 2026-08-18 - US-002
+**Inventory and verify every API integration**
+
+Files changed:
+- `.ralph/docs/api-audit.md` (created)
+
+**Learnings:**
+- All 6 external services are WORKING: Groq AI, YouTube Data API, Neon PostgreSQL, Clerk Auth, Gmail SMTP, pdf-lib
+- No broken integrations found — all configured and verified with live tests
+- Groq API (`openai/gpt-oss-20b` model) responds correctly to both simple and complex prompts
+- YouTube API returns search results; key exposed to client via `NEXT_PUBLIC_` prefix
+- Neon PostgreSQL: 5 tables, 20 courses, 46 progress records in production DB
+- Gmail SMTP transporter verified successfully via `transporter.verify()`
+- 5 of 7 API routes have NO auth checks — critical security gap
+- `/api/deleteCourse` and `/api/sendCertificate` are completely unprotected
+- `/api/genCourseDetails` is orphaned — no client code references it
+- Empty `app/createCourse/[courseId]/page.jsx` blocks production build
+- 11 npm packages installed but never imported (unused dependencies)
+- Both `@dnd-kit` and `@hello-pangea/dnd` are actively used in AlterRoadmap.jsx
+- `uuid` is used but `uuid4` is not — duplicate package
+- Database credentials hardcoded in `drizzle.config.js` committed to repo
+- Client-side DB access exposes connection string in browser bundle
+- No `.env.example` file exists
+
+---
