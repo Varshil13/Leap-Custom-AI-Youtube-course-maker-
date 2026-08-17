@@ -182,7 +182,7 @@
         "The complete course-maker experience is visually consistent"
       ],
       "priority": 10,
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-011",

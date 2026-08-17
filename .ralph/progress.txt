@@ -232,3 +232,17 @@ Files changed:
 - KaTeX library was already installed but unused — now properly integrated
 
 ---
+
+## 2026-08-18 - US-010
+**UI redesign pass 3 - course creation and editing**
+
+Files changed:
+- `app/createCourse/_components/AlterRoadmap.jsx` — Added empty state for topics list
+
+**Learnings:**
+- Only remaining inline style was dnd-kit transform (required by library)
+- Added proper empty state with icon, heading, description, and CTA button when no topics exist
+- Error handling in chooseVideos was already solid — errors silently fall back to empty arrays
+- Course creation flow is now visually consistent across all steps
+
+---

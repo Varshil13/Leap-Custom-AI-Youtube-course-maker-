@@ -290,6 +290,24 @@ export default function AlterRoadmap() {
       >
         <SortableContext items={topicIds} strategy={rectSortingStrategy}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full max-w-7xl mx-auto">
+            {topics.length === 0 && (
+              <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <Plus size={24} className="text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground mb-2">No topics yet</h3>
+                <p className="text-sm text-muted-foreground mb-4 max-w-sm">
+                  Your roadmap is empty. Add topics to start building your course structure.
+                </p>
+                <button
+                  type="button"
+                  onClick={addTopic}
+                  className="inline-flex items-center gap-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 text-sm transition-colors"
+                >
+                  <Plus size={16} /> Add Your First Topic
+                </button>
+              </div>
+            )}
             {topics.map((topic, index) => (
               <SortableCard
                 key={topic.id}
