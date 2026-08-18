@@ -4,10 +4,9 @@ import { useUser } from "@clerk/nextjs";
 import { db } from "@/services/db";
 import { CourseDetails } from "@/services/schema";
 import { eq } from "drizzle-orm";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import LoadingDialouge from "../../createCourse/_components/LoadingDialouge";
+import { CourseCard } from "@/components/ui/course-card";
 import toast from "react-hot-toast";
 import { EmptyState } from "@/components/ui/empty-state";
 
@@ -141,38 +140,15 @@ function CompletedCourses() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {completedCourses.map((course) => (
-              <Card key={course.courseId} className="overflow-hidden">
-                <div className="h-32 bg-muted flex items-center justify-center text-muted-foreground text-sm">
-                  {course.name?.charAt(0) || '?'}
-                </div>
-                <CardContent className="p-4 space-y-3">
-                  <div>
-                    <h3 className="font-semibold text-foreground truncate">{course.name}</h3>
-                    <p className="text-xs text-muted-foreground line-clamp-2">{course.description}</p>
-                  </div>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                    100% completed
-                  </span>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => router.push(`/dashboard/learnCourse/${course.courseId}`)}
-                    >
-                      View Course
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => handleCertificateRequest(course)}
-                      disabled={certificateLoading[course.courseId]}
-                    >
-                      {certificateLoading[course.courseId] ? "Sending..." : "Get Certificate"}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <CourseCard
+                key={course.courseId}
+                course={course}
+                completionBadge={true}
+                onView={(courseId) => router.push(`/dashboard/learnCourse/${courseId}`)}
+                actionLabel="Get Certificate"
+                actionLoading={certificateLoading[course.courseId]}
+                onAction={handleCertificateRequest}
+              />
             ))}
           </div>
         )}

@@ -2,8 +2,7 @@
 
 import React, { useContext, useState } from "react";
 
-import { GoProjectRoadmap } from "react-icons/go";
-import { HiMiniAdjustmentsHorizontal, HiBeaker } from "react-icons/hi2";
+import { Map, SlidersHorizontal, ArrowLeft } from "lucide-react";
 import TopicForm from "./_components/TopicForm";
 import AlterRoadmap from "./_components/AlterRoadmap";
 import { UserInputContext } from "../_context/UserInputContext";
@@ -20,13 +19,13 @@ import { extractJsonArray } from "@/app/_utils/extractJsonArray";
 
 export default function CreateCoursePage() {
   const StepperOptions = [
-    { id: 1, label: "Roadmap", icon: <GoProjectRoadmap /> },
-    { id: 2, label: "Alter Roadmap", icon: <HiMiniAdjustmentsHorizontal /> },
+    { id: 1, label: "Roadmap", icon: <Map size={20} /> },
+    { id: 2, label: "Alter Roadmap", icon: <SlidersHorizontal size={20} /> },
     
   ];
 
   const [activeStep, setActiveStep] = useState(0);
-  const [loading, setLoading] = useState(false); // Add loading state
+  const [loading, setLoading] = useState(false);
   const { userCourseInput, setUserCourseInput } = useContext(UserInputContext);
   const {user} = useUser();
    const router = useRouter();
@@ -50,8 +49,6 @@ export default function CreateCoursePage() {
     router.replace('/createCourse/'+id+'/chooseVideos');
   }
   const checkStatus = () => {
-    //used to check if the user has filled the form or not
-
     if (
       userCourseInput == undefined ||
       Object.keys(userCourseInput).length === 0
@@ -63,7 +60,6 @@ export default function CreateCoursePage() {
 
   
   const generateRoadmap = async () => {
-    // Build the prompt
     const userInputPrompt = `You are an expert curriculum designer . Your task is to generate a comprehensive, structured course roadmap in only 1 topic in JSON format based on the provided course topic description and target audience level.
 
 **CRITICAL INSTRUCTIONS FOR OUTPUT FORMAT:**
@@ -83,7 +79,6 @@ export default function CreateCoursePage() {
 ]`;
 
     try {
-      // 1. Send the request to your Next.js API Route
       const response = await fetch("/api/genRoadmap", {
         method: "POST",
         headers: {
@@ -96,13 +91,9 @@ export default function CreateCoursePage() {
         throw new Error(`API Error: ${response.statusText}`);
       }
 
-      // 2. Get the structured result from the API
       const data = await response.json();
-
-      // Parse the roadmap from the AI response text
       const roadmap = extractJsonArray(data.text) ?? [];
 
-      // Store the roadmap in context
       setUserCourseInput((prev) => ({
         ...(prev ?? {}),
         roadmap: roadmap,
@@ -119,15 +110,13 @@ export default function CreateCoursePage() {
 
   const handleNext = async () => {
     if (activeStep === 0) {
-      // Generate roadmap for step 0 -> 1
-      setLoading(true); // Start loading
+      setLoading(true);
       await generateRoadmap();
       setLoading(false);
       setActiveStep(1 + activeStep);
 
     } else if (activeStep === 1) {
-      // Save roadmap to DB for step 1 -> 2
-      setLoading(true); // Start loading
+      setLoading(true);
       await SaveRoadmaptoDB();
       setLoading(false);
     }
@@ -138,7 +127,7 @@ export default function CreateCoursePage() {
       {/* Header / Stepper */}
       <div className="flex flex-col items-center justify-center pt-10">
         <a href="/dashboard" className="text-xs text-primary hover:underline mb-4">
-          &larr; Back to Dashboard
+          <ArrowLeft size={14} className="inline mr-1" /> Back to Dashboard
         </a>
         <h1 className="text-3xl font-bold tracking-tight sm:text-6xl text-foreground">
           Create Course

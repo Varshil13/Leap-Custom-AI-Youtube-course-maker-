@@ -1,14 +1,14 @@
 'use client'
 import React from 'react'
 import Image from 'next/image'
-import { HiOutlineHome, HiOutlinePlusCircle } from 'react-icons/hi2'
+import { Home, PlusCircle } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 
 function Sidebar() {
   const MenuItems = [
-    { id: 1, name: 'My Courses', icon: <HiOutlineHome size={20} />, path: '/dashboard' },
-    { id: 2, name: 'New Course', icon: <HiOutlinePlusCircle size={20} />, path: '/createCourse' },
+    { id: 1, name: 'My Courses', icon: <Home size={20} />, path: '/dashboard' },
+    { id: 2, name: 'New Course', icon: <PlusCircle size={20} />, path: '/createCourse' },
   ]
 
   const path = usePathname()

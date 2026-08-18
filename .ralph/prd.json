@@ -279,7 +279,7 @@
         "No custom button or input elements exist outside the shadcn system"
       ],
       "priority": 14,
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-016",

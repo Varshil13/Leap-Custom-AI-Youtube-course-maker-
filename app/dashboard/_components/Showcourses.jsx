@@ -6,7 +6,18 @@ import { CourseDetails, CourseVideos } from "@/services/schema";
 import { eq } from "drizzle-orm";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { CourseCard } from "@/components/ui/course-card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -26,8 +37,12 @@ export const invalidateProgressCache = (courseId) => {
 
 function Showcourses() {
   const [deregisterLoading, setDeregisterLoading] = useState({});
-  const handleDeregister = async (courseId) => {
-    if (!window.confirm('Are you sure you want to deregister from this course? This action cannot be undone.')) return;
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
+  const confirmDeregister = async () => {
+    if (!deleteTarget) return;
+    const courseId = deleteTarget;
+    setDeleteTarget(null);
     try {
       setDeregisterLoading(prev => ({ ...prev, [courseId]: true }));
       const res = await fetch(`/api/deleteCourse?courseId=${courseId}`, { method: 'DELETE' });
@@ -43,7 +58,7 @@ function Showcourses() {
     } catch (e) {
       toast.error('Failed to deregister.');
     } finally {
-      setDeregisterLoading(prev => ({ ...prev, [courseId]: false }));
+      setDeregisterLoading(prev => ({ ...prev, [deleteTarget]: false }));
     }
   };
 
@@ -128,6 +143,24 @@ function Showcourses() {
   return (
     <>
       <LoadingDialouge loading={loading} activeStep={2} />
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove course?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to deregister from this course? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeregister} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {courses.length === 0 && !loading ? (
         <EmptyState
           title="No courses yet"
@@ -143,45 +176,15 @@ function Showcourses() {
           {sortedCourses.map((course) => {
             const courseProgress = progress[course.courseId] || 0;
             return (
-              <Card key={course.courseId} className="overflow-hidden">
-                <div className="h-32 bg-muted flex items-center justify-center text-muted-foreground text-sm">
-                  {course.name?.charAt(0) || '?'}
-                </div>
-                <CardContent className="p-4 space-y-3">
-                  <div>
-                    <h3 className="font-semibold text-foreground truncate">{course.name}</h3>
-                    <p className="text-xs text-muted-foreground line-clamp-2">{course.description}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="w-full rounded-full h-2 bg-muted overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-primary transition-all duration-300"
-                        style={{ width: `${courseProgress}%` }}
-                      />
-                    </div>
-                    <span className="text-xs font-medium text-muted-foreground">
-                      {courseProgress}% completed
-                    </span>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => handleCourseClick(course.courseId)}
-                    >
-                      View Course
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleDeregister(course.courseId)}
-                      disabled={deregisterLoading[course.courseId]}
-                    >
-                      {deregisterLoading[course.courseId] ? '...' : 'Remove'}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <CourseCard
+                key={course.courseId}
+                course={course}
+                progress={courseProgress}
+                onView={handleCourseClick}
+                onDelete={setDeleteTarget}
+                showDelete={true}
+                deleteLoading={deregisterLoading[course.courseId]}
+              />
             );
           })}
         </div>

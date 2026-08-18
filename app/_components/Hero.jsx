@@ -3,6 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { Button } from '../../components/ui/button'
+import { ArrowRight } from 'lucide-react'
 
 function Hero() {
   return (
@@ -27,9 +28,7 @@ function Hero() {
           <Link href="/sign-up">
             <Button size="lg" className="px-8 py-4 text-lg font-semibold">
               Get Started Free
-              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
+              <ArrowRight size={20} className="ml-2" />
             </Button>
           </Link>
           <Link href="/sign-in">

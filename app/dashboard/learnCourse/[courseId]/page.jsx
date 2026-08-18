@@ -6,11 +6,14 @@ import { db } from "@/services/db";
 import { CourseDetails, CourseVideos, CourseContent } from "@/services/schema";
 import { eq } from "drizzle-orm";
 import { Button } from "@/components/ui/button";
-import { useContext } from "react";
-import { extractJsonArray } from "@/app/_utils/extractJsonArray";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import { useUser } from "@clerk/nextjs";
 import LaTeXRenderer from "@/app/_components/LaTeXRenderer";
 import 'katex/dist/katex.min.css';
+import { Check, BookOpen, FileText, PartyPopper, ArrowLeft, ArrowRight } from "lucide-react";
+import toast from "react-hot-toast";
 
 
 
@@ -243,25 +246,21 @@ function LearnCoursePage() {
       <div className="w-80 shadow-lg border-r border-sidebar-border bg-sidebar flex flex-col">
         <div className="p-4 border-b border-sidebar-border">
           <a href="/dashboard" className="text-xs text-primary hover:underline mb-2 inline-block">
-            &larr; Back to Dashboard
+            <ArrowLeft size={14} className="inline mr-1" /> Back to Dashboard
           </a>
           <h2 className="font-bold text-lg text-sidebar-foreground">Course Content</h2>
           {course && (
-            <div className="mt-2">
+              <div className="mt-2">
               <p className="text-sm font-medium text-muted-foreground">{course.name}</p>
-              <div className="flex items-center mt-1">
-                <div className="w-full rounded-full h-2 bg-muted">
-                  <div 
-                    className="h-2 rounded-full transition-all duration-300 bg-primary" 
-                    style={{ 
-                      width: `${roadmap.length > 0 
-                        ? (Object.keys(watched).filter(key => watched[key]).length / 
-                           roadmap.reduce((total, chapter) => total + (chapter.subtopics?.length || 0), 0)) * 100 
-                        : 0}%` 
-                    }}
-                  ></div>
-                </div>
-                <span className="ml-3 text-xs whitespace-nowrap text-muted-foreground">
+              <div className="flex items-center gap-3 mt-1">
+                <Progress 
+                  value={roadmap.length > 0 
+                    ? (Object.keys(watched).filter(key => watched[key]).length / 
+                       roadmap.reduce((total, chapter) => total + (chapter.subtopics?.length || 0), 0)) * 100 
+                    : 0} 
+                  className="h-2 flex-1" 
+                />
+                <span className="text-xs whitespace-nowrap text-muted-foreground">
                   {Object.keys(watched).filter(key => watched[key]).length} / {roadmap.reduce((total, chapter) => total + (chapter.subtopics?.length || 0), 0)}
                 </span>
               </div>
@@ -281,7 +280,7 @@ function LearnCoursePage() {
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
                     isChapterComplete ? 'bg-accent text-white' : 'bg-primary text-white'
                   }`}>
-                    {isChapterComplete ? '✓' : idx + 1}
+                    {isChapterComplete ? <Check size={16} /> : idx + 1}
                   </div>
                   <div className="font-semibold text-sm text-sidebar-foreground">{chapter.title}</div>
                 </div>
@@ -305,7 +304,7 @@ function LearnCoursePage() {
                         <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
                           isActive ? 'bg-primary-foreground text-primary' : 'bg-accent text-white'
                         }`}>
-                          <span className="text-xs">✓</span>
+                          <Check size={12} />
                         </div>
                       )}
                     </li>
@@ -323,9 +322,9 @@ function LearnCoursePage() {
         <div className="max-w-4xl mx-auto p-8">
           {!selectedKey && (
             <div className="flex flex-col items-center justify-center h-96 text-center">
-              <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-4">
-                <span className="text-3xl">📚</span>
-              </div>
+                <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-4">
+                   <BookOpen size={36} className="text-muted-foreground" />
+                 </div>
               <h3 className="text-xl font-semibold mb-2 text-foreground">Welcome to Your Course</h3>
               <p className="text-muted-foreground">Select a lesson from the sidebar to start learning</p>
             </div>
@@ -393,20 +392,18 @@ function LearnCoursePage() {
                       <h1 className="text-2xl font-bold mb-1 text-foreground">{subtopicName}</h1>
                       <p className="text-sm text-muted-foreground">{chapterTitle}</p>
                     </div>
-                    <label
-                      className="flex items-center gap-2 cursor-pointer select-none px-4 py-2 rounded-lg border border-border bg-muted transition-colors"
-                    >
-                      <input
-                        type="checkbox"
+                    <div className="flex items-center gap-2 cursor-pointer select-none px-4 py-2 rounded-lg border border-border bg-muted transition-colors">
+                      <Checkbox
+                        id="mark-watched"
                         checked={!!watched[selectedKey]}
-                        onChange={() => toggleWatched(selectedKey)}
-                        className="accent-primary w-5 h-5"
+                        onCheckedChange={() => toggleWatched(selectedKey)}
                         disabled={loadingProgress}
+                        className="w-5 h-5"
                       />
-                      <span className="text-sm font-medium text-foreground">
+                      <Label htmlFor="mark-watched" className="text-sm font-medium text-foreground cursor-pointer mb-0">
                         {loadingProgress ? "Saving..." : "Mark as Watched"}
-                      </span>
-                    </label>
+                      </Label>
+                    </div>
                   </div>
 
                   {/* Video Player */}
@@ -441,7 +438,7 @@ function LearnCoursePage() {
                                 await generateSubtopicContent(chapterTitle, chapterTitle);
                               } catch (error) {
                                 console.error('Failed to generate chapter content:', error);
-                                alert('Failed to generate chapter content. Please try again.');
+                                 toast.error('Failed to generate chapter content. Please try again.');
                               }
                             }}
                             size="sm"
@@ -457,19 +454,17 @@ function LearnCoursePage() {
                   <div className="p-8 rounded-lg border bg-muted border-border">
                     <h4 className="text-xl font-semibold mb-4 text-foreground">Lesson Content</h4>
                     {generatingContent ? (
-                      <div className="flex items-center justify-center py-8">
-                        <div className="flex flex-col items-center gap-4">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                          <p className="text-muted-foreground">Generating content for this lesson...</p>
-                        </div>
+                      <div className="flex flex-col items-center gap-4 py-8">
+                        <div className="ds-spinner" />
+                        <p className="text-muted-foreground">Generating content for this lesson...</p>
                       </div>
                     ) : contentRow && contentRow.contentData?.content ? (
                       <LaTeXRenderer content={contentRow.contentData.content} />
                     ) : (
                       <div className="flex flex-col items-center gap-4 py-8">
                         <div className="w-16 h-16 rounded-full bg-background flex items-center justify-center">
-                          <span className="text-2xl">📝</span>
-                        </div>
+                           <FileText size={28} className="text-muted-foreground" />
+                         </div>
                         <div className="text-center">
                           <p className="text-muted-foreground mb-3">
                             Content for this lesson hasn't been generated yet.
@@ -480,7 +475,7 @@ function LearnCoursePage() {
                                 await generateSubtopicContent(chapterTitle, subtopicName);
                               } catch (error) {
                                 console.error('Failed to generate content:', error);
-                                alert('Failed to generate content. Please try again.');
+                                 toast.error('Failed to generate content. Please try again.');
                               }
                             }}
                             className="px-6 py-2"
@@ -510,9 +505,10 @@ function LearnCoursePage() {
                             onClick={() => setSelectedKey(`${prev.chapter}__${prev.subtopic}`)}
                             className="flex items-center gap-2"
                           >
-                            <span>&larr;</span>
+                            <ArrowLeft size={16} className="hidden sm:inline" />
                             <span className="hidden sm:inline">{prev.subtopic}</span>
                             <span className="sm:hidden">Previous</span>
+                            <ArrowLeft size={16} className="sm:hidden" />
                           </Button>
                         ) : <div />}
                         {next ? (
@@ -522,12 +518,12 @@ function LearnCoursePage() {
                           >
                             <span className="hidden sm:inline">{next.subtopic}</span>
                             <span className="sm:hidden">Next</span>
-                            <span>&rarr;</span>
+                            <ArrowRight size={16} />
                           </Button>
                         ) : (
-                          <div className="text-sm text-muted-foreground font-medium">
-                            🎉 Course complete!
-                          </div>
+                           <div className="text-sm text-muted-foreground font-medium flex items-center gap-2">
+                             <PartyPopper size={18} className="text-accent" /> Course complete!
+                           </div>
                         )}
                       </div>
                     );

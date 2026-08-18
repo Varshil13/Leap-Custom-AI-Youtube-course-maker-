@@ -25,11 +25,12 @@ import {
   Pencil,
   Check,
   X,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
-import { ChevronDown, ChevronRight } from "lucide-react";
 import { UserInputContext } from "@/app/_context/UserInputContext";
-
-// (removed unused Button import)
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 
 
@@ -117,7 +118,6 @@ export default function AlterRoadmap() {
       subtopics: [],
     };
     setTopics((prev) => [...prev, newTopic]);
-    // Auto-expand the newly added topic so users can immediately add subtopics
     setExpanded((prev) => ({ ...prev, [newTopic.id]: true }));
   };
 
@@ -125,19 +125,18 @@ export default function AlterRoadmap() {
   const addFirstSubtopic = (topicIndex) => {
     if (topicIndex < 0 || topicIndex >= topics.length) return;
     const topicId = topics[topicIndex].id;
-    const nextIndex = topics[topicIndex].subtopics.length; // usually 0 for first
+    const nextIndex = topics[topicIndex].subtopics.length;
 
     setTopics((prev) => {
       const updated = [...prev];
       const t = updated[topicIndex];
       if (!t) return prev;
       const subs = Array.isArray(t.subtopics) ? [...t.subtopics] : [];
-      subs.push(""); // start with empty value; user types immediately
+      subs.push("");
       updated[topicIndex] = { ...t, subtopics: subs };
       return updated;
     });
 
-    // Ensure topic is expanded and open editor for the new subtopic
     setExpanded((prev) => ({ ...prev, [topicId]: true }));
     setEditingSub({ topicId, index: nextIndex, value: "" });
   };
@@ -165,8 +164,6 @@ export default function AlterRoadmap() {
 
   const toggleExpand = (id) =>
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
-
-  // (Removed per-card add; using top-right Add Topic button instead)
 
   // ✅ Add new subtopic *after* given subIndex
   const addSubtopicAfter = (topicIndex, subIndex) => {
@@ -228,17 +225,14 @@ export default function AlterRoadmap() {
         const next = [...t.subtopics];
         const original = next[index];
 
-        // If nothing typed and original was the temporary empty stub, remove it
         if (trimmed === "") {
           if (original === "") {
             next.splice(index, 1);
             return { ...t, subtopics: next };
           }
-          // Otherwise, keep original value (no change)
           return t;
         }
 
-        // Persist the edited non-empty value
         next[index] = trimmed;
         return { ...t, subtopics: next };
       })
@@ -248,7 +242,6 @@ export default function AlterRoadmap() {
   const cancelEditSub = () => {
     if (!editingSub) return;
     const { topicId, index } = editingSub;
-    // If the current subtopic in state is an empty stub (from addFirstSubtopic), remove it
     setTopics((prev) =>
       prev.map((t) => {
         if (t.id !== topicId) return t;
@@ -267,14 +260,15 @@ export default function AlterRoadmap() {
     <div className="p-8 ">
       <div className="mb-6 flex flex-col items-center justify-center sticky top-0 z-10 bg-background backdrop-blur ">
         <h2 className="text-2xl font-bold text-center my-1 text-foreground">Manage Course Roadmap</h2>
-        <button
-          type="button"
+        <Button
+          variant="outline"
+          size="sm"
           onClick={addTopic}
-          className="inline-flex items-center gap-2 rounded-md border border-primary text-primary hover:bg-primary/20 px-3 py-2 text-sm mt-2 bg-background transition-colors"
+          className="mt-2"
         >
-          <Plus size={16} />
+          <Plus size={16} className="mr-1" />
           Add Topic
-        </button>
+        </Button>
       </div>
 
       {/* Outer grid with dnd-kit for smooth vertical+horizontal sorting */}
@@ -299,13 +293,9 @@ export default function AlterRoadmap() {
                 <p className="text-sm text-muted-foreground mb-4 max-w-sm">
                   Your roadmap is empty. Add topics to start building your course structure.
                 </p>
-                <button
-                  type="button"
-                  onClick={addTopic}
-                  className="inline-flex items-center gap-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 text-sm transition-colors"
-                >
-                  <Plus size={16} /> Add Your First Topic
-                </button>
+                <Button onClick={addTopic}>
+                  <Plus size={16} className="mr-1" /> Add Your First Topic
+                </Button>
               </div>
             )}
             {topics.map((topic, index) => (
@@ -320,33 +310,33 @@ export default function AlterRoadmap() {
                     <div className="flex justify-between items-center p-2">
                       <div className="flex items-center gap-2">
                         {/* Expand/Collapse toggle */}
-                        <button
-                          type="button"
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => toggleExpand(topic.id)}
-                          aria-label={
-                            expanded[topic.id] ? "Collapse" : "Expand"
-                          }
-                          className="p-1 rounded hover:bg-muted transition-colors"
+                          aria-label={expanded[topic.id] ? "Collapse" : "Expand"}
+                          className="p-1 h-auto"
                         >
                           {expanded[topic.id] ? (
                             <ChevronDown size={18} />
                           ) : (
                             <ChevronRight size={18} />
                           )}
-                        </button>
-                        <button
-                          type="button"
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           aria-label="Drag card"
-                          className="cursor-grab active:cursor-grabbing text-primary"
+                          className="cursor-grab active:cursor-grabbing text-primary p-1 h-auto"
                           {...(editingTopicId === topic.id
                             ? {}
                             : { ...attributes, ...listeners })}
                           disabled={editingTopicId === topic.id}
                         >
                           <GripVertical size={18} />
-                        </button>
+                        </Button>
                         {editingTopicId === topic.id ? (
-                          <input
+                          <Input
                             autoFocus
                             value={topicTitleDraft}
                             onChange={(e) => setTopicTitleDraft(e.target.value)}
@@ -354,7 +344,7 @@ export default function AlterRoadmap() {
                               if (e.key === "Enter") saveEditTopic(topic.id);
                               if (e.key === "Escape") cancelEditTopic();
                             }}
-                            className="font-semibold border border-primary bg-background text-foreground rounded-md py-1 text-sm px-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                            className="font-semibold text-sm h-8 w-48"
                           />
                         ) : (
                           <span className="font-semibold text-foreground">
@@ -362,43 +352,47 @@ export default function AlterRoadmap() {
                           </span>
                         )}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-1">
                         {editingTopicId === topic.id ? (
                           <>
-                            <button
-                              type="button"
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => saveEditTopic(topic.id)}
-                              className="text-primary hover:text-secondary"
+                              className="text-primary hover:text-secondary p-1 h-auto"
                               aria-label="Save title"
                             >
                               <Check size={18} />
-                            </button>
-                            <button
-                              type="button"
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={cancelEditTopic}
-                              className="text-destructive hover:text-muted"
+                              className="text-destructive hover:text-muted p-1 h-auto"
                               aria-label="Cancel edit"
                             >
                               <X size={18} />
-                            </button>
+                            </Button>
                           </>
                         ) : (
                           <>
-                            <button
-                              type="button"
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => startEditTopic(index)}
-                              className="text-primary hover:text-secondary"
+                              className="text-primary hover:text-secondary p-1 h-auto"
                               aria-label="Edit title"
                             >
                               <Pencil size={18} />
-                            </button>
-                            <button
-                              type="button"
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => deleteTopic(index)}
-                              className="text-destructive hover:text-muted"
+                              className="text-destructive hover:text-muted p-1 h-auto"
                             >
                               <Trash size={18} />
-                            </button>
+                            </Button>
                           </>
                         )}
                       </div>
@@ -412,13 +406,14 @@ export default function AlterRoadmap() {
                         </div>
                         {!topic.subtopics || topic.subtopics.length === 0 ? (
                           <div className="rounded-lg border border-dashed border-primary p-4 justify-center text-xs flex items-center text-secondary">
-                            <button
-                              type="button"
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => addFirstSubtopic(index)}
-                              className="inline-flex items-center gap-2 rounded-md border border-primary text-primary bg-background hover:bg-primary/20 px-3 py-1.5 text-xs transition-colors"
+                              className="text-xs"
                             >
-                              <Plus size={10} /> Add first subtopic
-                            </button>
+                              <Plus size={10} className="mr-1" /> Add first subtopic
+                            </Button>
                           </div>
                         ) : (
                           <DragDropContext onDragEnd={handleDragEnd}>
@@ -454,7 +449,7 @@ export default function AlterRoadmap() {
                                           editingSub.topicId === topic.id &&
                                           editingSub.index === subIndex ? (
                                             <div className="flex items-center gap-2 w-full">
-                                              <input
+                                              <Input
                                                 autoFocus
                                                 value={editingSub.value}
                                                 onChange={(e) =>
@@ -469,7 +464,7 @@ export default function AlterRoadmap() {
                                                   if (e.key === "Escape")
                                                     cancelEditSub();
                                                 }}
-                                                className="flex-1 border border-primary bg-background text-foreground rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                                className="flex-1 text-sm h-8"
                                               />
                                             </div>
                                           ) : (
@@ -477,64 +472,69 @@ export default function AlterRoadmap() {
                                               {index + 1}.{subIndex + 1} {sub}
                                             </span>
                                           )}
-                                          <div className="flex gap-2">
+                                          <div className="flex gap-1">
                                             {editingSub &&
                                             editingSub.topicId === topic.id &&
                                             editingSub.index === subIndex ? (
                                               <>
-                                                <button
-                                                  type="button"
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
                                                   onClick={saveEditSub}
-                                                  className="text-primary hover:text-secondary"
+                                                  className="text-primary hover:text-secondary p-1 h-auto"
                                                 >
                                                   <Check size={16} />
-                                                </button>
-                                                <button
-                                                  type="button"
+                                                </Button>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
                                                   onClick={cancelEditSub}
-                                                  className="text-destructive hover:text-muted"
+                                                  className="text-destructive hover:text-muted p-1 h-auto"
                                                 >
                                                   <X size={16} />
-                                                </button>
+                                                </Button>
                                               </>
                                             ) : (
                                               <>
-                                                <button
-                                                  type="button"
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
                                                   onClick={() =>
                                                     startEditSub(
                                                       index,
                                                       subIndex
                                                     )
                                                   }
-                                                  className="text-primary hover:text-secondary"
+                                                  className="text-primary hover:text-secondary p-1 h-auto"
                                                 >
                                                   <Pencil size={16} />
-                                                </button>
-                                                <button
-                                                  type="button"
+                                                </Button>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
                                                   onClick={() =>
                                                     addSubtopicAfter(
                                                       index,
                                                       subIndex
                                                     )
                                                   }
-                                                  className="text-primary hover:text-secondary"
+                                                  className="text-primary hover:text-secondary p-1 h-auto"
                                                 >
                                                   <CornerDownRight size={16} />
-                                                </button>
-                                                <button
-                                                  type="button"
+                                                </Button>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
                                                   onClick={() =>
                                                     deleteSubtopic(
                                                       index,
                                                       subIndex
                                                     )
                                                   }
-                                                  className="text-destructive hover:text-muted"
+                                                  className="text-destructive hover:text-muted p-1 h-auto"
                                                 >
                                                   <Trash size={16} />
-                                                </button>
+                                                </Button>
                                               </>
                                             )}
                                           </div>

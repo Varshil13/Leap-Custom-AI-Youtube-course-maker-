@@ -293,6 +293,34 @@ Files changed:
 - Code block colors updated to slate-based tones for consistency
 - All CSS custom properties flow through design tokens — no component-level color changes needed
 - Email template and PDF generation colors left as-is (server-side contexts without CSS variable access)
-- Typography scale, spacing, and radius tokens unchanged (already consistent from US-004)
-
+  - Typography scale, spacing, and radius tokens unchanged (already consistent from US-004)
+  
 ---
+
+## 2026-08-19 - US-015
+**Rebuild UI components to industry standard**
+
+Files changed:
+- `components/ui/dialog.jsx` — Installed shadcn Dialog component (new)
+- `components/ui/select.jsx` — Installed shadcn Select component (new)
+- `components/ui/textarea.jsx` — Installed shadcn Textarea component (new)
+- `components/ui/tabs.jsx` — Installed shadcn Tabs component (new)
+- `components/ui/course-card.jsx` — Created reusable CourseCard component with gradient visual treatment (new)
+- `app/dashboard/learnCourse/[courseId]/page.jsx` — Replaced raw checkbox input with shadcn Checkbox+Label, replaced alert() with toast.error(), replaced emoji icons (📚📝🎉) with lucide-react icons (BookOpen, FileText, PartyPopper), replaced &larr;/&rarr; entities with ArrowLeft/ArrowRight icons, replaced animate-spin div with ds-spinner CSS class, removed unused imports
+- `app/dashboard/_components/Showcourses.jsx` — Replaced letter-initial course image with CourseCard gradient treatment
+- `app/dashboard/completed/page.jsx` — Replaced letter-initial course image with CourseCard, replaced inline badge span with shadcn Badge component, used CourseCard with certificate action button, removed unused imports
+- `app/_components/Hero.jsx` — Replaced inline SVG arrow with lucide-react ArrowRight icon
+- `app/createCourse/page.jsx` — Replaced &larr; entity with ArrowLeft lucide icon (in addition to prior react-icons migration)
+- `app/createCourse/[courseId]/chooseVideos/page.jsx` — Replaced &larr; entity with ArrowLeft lucide icon
+- `tests/progress-completion.authenticated.spec.ts` — Updated Remove button test to use AlertDialog selectors instead of native page.on('dialog')
+- `package.json`, `package-lock.json` — Removed react-icons dependency (no source imports found)
+
+**Learnings:**
+- shadcn CLI (`npx shadcn@latest add`) works with this Tailwind v4 / New York style project
+- The `cn` utility from `lib/utils.js` (clsx + tailwind-merge) is used by all shadcn components
+- All shadcn components are created as .jsx files (matching the project's tsx:false setting in components.json)
+- pre-existing changes had already migrated most react-icons usage to lucide-react in Sidebar.jsx, createCourse/page.jsx, and chooseVideos/page.jsx
+- The pre-existing diff had already replaced window.confirm with AlertDialog in Showcourses.jsx and replaced most emoji/checkmark entities in learnCourse page — this iteration completed the remaining work (emoji icons, alert() calls, raw checkbox, course card redesign)
+- The progress-completion test used `page.on('dialog')` to test native window.confirm — updated to test AlertDialog custom component visibility instead
+- react-icons was listed as a dependency but had zero source imports — safe to remove
+- Hero.jsx used an inline SVG for the arrow icon — replaced with lucide-react ArrowRight for icon library consistency
