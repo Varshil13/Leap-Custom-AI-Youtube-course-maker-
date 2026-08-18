@@ -240,7 +240,7 @@
         "Tests can be executed reliably"
       ],
       "priority": 16,
-      "passes": false
+      "passes": true
     },
     {
       "id": "US-014",
@@ -283,22 +283,25 @@
     },
     {
       "id": "US-016",
-      "title": "Responsive layout, navigation, and landing page",
-      "description": "Build a responsive layout system with working mobile navigation, complete the landing page with real content, clean up dead files and unused dependencies, and ensure the application works well across all screen sizes. This is the final polish pass that brings the application to production-quality UI standards.",
+      "title": "Full page redesign per design system",
+      "description": "Implement a complete redesign of all major application pages using the LEAP Neue design system (see .ralph/docs/ui-design-system.md for full palette, typography, spacing, component specs, and per-page wireframes). Pages to redesign: Dashboard/My Courses, Create Course (Basics + Stepper), Alter Roadmap editor, Choose Videos, Completed Courses (add back + redesign), and review the Learning/Course Player. Every page must use the design system tokens, shadcn components, lucide-react icons, responsive layout (sidebar collapses to mobile sheet), and follow the documented wireframes. This is the final visual transformation of the LEAP application.",
       "acceptanceCriteria": [
-        "Dashboard has a working mobile navigation with hamburger menu or sheet",
-        "learnCourse page has a responsive layout with collapsible sidebar on mobile",
-        "Landing page Features section is built with real content and functionality",
-        "Landing page Footer is built with links and branding",
-        "Landing page Pricing section is built or removed entirely",
-        "Empty dead files removed (Addcourse.jsx, components/LaTexRenderer.jsx, Features.jsx, Footer.jsx, Pricing.jsx)",
-        "Unused npm packages cleaned up (duplicate KaTeX packages, react-icons if consolidated, unused resend)",
-        "react-hot-toast configured with CSS variables instead of hardcoded colors",
-        "All pages have consistent header and navigation",
-        "Dashboard sidebar includes links to Completed Courses and Upgrade pages",
-        "Sign-in and sign-up pages share a common layout",
-        "No zero-byte placeholder files remain in the codebase",
-        "Production build succeeds with no warnings related to unused imports"
+        "Dashboard page redesigned per wireframe: header with logo+title+user, sidebar (mobile sheet), stats row, search + filter, course card grid using new Course Card spec",
+        "Create Course page redesigned per wireframe: 3-step stepper (Basics → Roadmap → Videos), card-based form with amber highlight on current step",
+        "Alter Roadmap editor redesigned per wireframe: draggable, collapsible chapter cards with inline subtopic editing, 'Generate with AI' button, save/commit bar",
+        "Choose Videos page redesigned per wireframe: search + selected-chip lane, tabbed filter (All/Selected), YouTube-style video grid with selection checkboxes, responsive grid columns",
+        "Completed Courses page recreated AND redesigned per wireframe: green badge, completion date, View Certificate + Share buttons; empty state when no courses",
+        "All pages use the LEAP Neue color palette, typography scale, radius tokens, and spacing grid from the design system",
+        "Every page has consistent Dashboard Header (logo, title, user button) and Sidebar with links to My Courses, Completed, Create Course, Upgrade",
+        "Sidebar collapses to hamburger menu + Sheet on mobile (md breakpoint)",
+        "All icons are lucide-react — no emoji, no react-icons, no raw SVGs",
+        "All cards, inputs, buttons, badges, and progress bars use shadcn components from components/ui/",
+        "Course cards follow the spec: thumbnail, title (2-line truncate), meta line, Progress bar, status Badge, 3-dot dropdown (MoreVertical) for Edit/Delete, hover lift",
+        "Empty and loading states use dedicated EmptyState / Skeleton components",
+        "react-hot-toast configured with CSS variables instead of hardcoded hex values",
+        "Dead files removed (Addcourse.jsx, components/LaTexRenderer.jsx, Features.jsx, Footer.jsx, Pricing.jsx, and any other zero-byte files)",
+        "Unused dependencies removed (react-icons, duplicate KaTeX packages, unused resend, unused @google/genai) after confirming no imports remain",
+        "Production build succeeds with zero new warnings and zero unused-import warnings"
       ],
       "priority": 15,
       "passes": false

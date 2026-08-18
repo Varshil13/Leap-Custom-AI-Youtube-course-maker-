@@ -15,7 +15,7 @@ agent:
 # Loop configuration
 loop:
   # Maximum number of iterations
-  maxIterations: 25
+  maxIterations: 50
   # Time to sleep between iterations
   sleepBetween: 2s
   # Stop on first failure (default: continue)
