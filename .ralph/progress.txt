@@ -277,3 +277,22 @@ Files changed:
 - All 5 UI passes represent substantive rework across navigation, IA, visual system, course maker, and learning experience
 
 ---
+
+## 2026-08-18 - US-014
+**Redesign the design system and color palette**
+
+Files changed:
+- `app/globals.css` — Replaced monochromatic cyan palette with multi-hue indigo/amber design system
+- `app/layout.js` — Updated toast notification colors to match new palette
+- `.ralph/prd.json` — Marked US-014 as complete
+
+**Learnings:**
+- New palette: primary indigo (#6366f1), accent amber (#f59e0b), background deep slate (#0f172a)
+- Chart colors now span 5 distinct hues: indigo, amber, emerald, pink, violet
+- Toast notifications updated with matching card/foreground/border values
+- Code block colors updated to slate-based tones for consistency
+- All CSS custom properties flow through design tokens — no component-level color changes needed
+- Email template and PDF generation colors left as-is (server-side contexts without CSS variable access)
+- Typography scale, spacing, and radius tokens unchanged (already consistent from US-004)
+
+---
