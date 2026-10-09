@@ -1,34 +1,31 @@
 "use client";
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { db } from "@/services/db";
 import { CourseDetails } from "@/services/schema";
 import getVideos from "@/services/youtube";
-import LoadingDialouge from "@/app/createCourse/_components/LoadingDialouge";
 import { eq } from "drizzle-orm";
 import { CourseVideos } from "@/services/schema";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Check, ArrowLeft } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Check } from "lucide-react";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 
-
-function ChooseVideosPage() {
-  const [finishing, setFinishing] = useState(false);
+export default function ChooseVideosPage() {
   const params = useParams();
   const courseId = params.courseId;
   const [course, setCourse] = useState(null);
   const [roadmap, setRoadmap] = useState([]);
   const [lessonVideos, setLessonVideos] = useState({});
-  const [loading, setLoading] = useState(false);
   const [selectedVideos, setSelectedVideos] = useState({});
-  const [showCustomInput, setShowCustomInput] = useState({});
   const [customUrls, setCustomUrls] = useState({});
+  const [tab, setTab] = React.useState("all");
+  const [loading, setLoading] = useState(false);
 
   const buildVideoQuery = (topicName, subtopicName) =>
     [topicName, subtopicName].filter(Boolean).join(" ");
-  
-
 
   useEffect(() => {
     if (courseId) {
@@ -36,76 +33,60 @@ function ChooseVideosPage() {
     }
   }, [courseId]);
 
-  
-
   const fetchCourse = async () => {
     setLoading(true);
-    // Fetch course details from DB
-    
-    
     const result = await db
       .select()
       .from(CourseDetails)
       .where(eq(CourseDetails.courseId, courseId));
     const courseData = result[0];
-  
-    
     setCourse(courseData);
-    // Parse roadmap and set
     try {
       const roadmapData =
         typeof courseData.roadmap === "string"
           ? JSON.parse(courseData.roadmap)
           : courseData.roadmap ?? [];
       setRoadmap(roadmapData);
-      const existingSelections = await loadExistingVideos(); // Load existing first
-      await fetchAllLessonVideos(roadmapData, existingSelections, courseData?.name); // Pass existing to skip API calls
+      fetchAllLessonVideos(roadmapData, courseData);
     } catch {
       setRoadmap([]);
     }
     setLoading(false);
   };
 
-  const fetchAllLessonVideos = async (roadmapData, existingSelections = {}, topicName = "") => {
-    const videosMap = {};
+  const fetchAllLessonVideos = async (roadmapData, courseData) => {
     for (const chapter of roadmapData) {
       for (const lesson of chapter.subtopics) {
-        const lessonKey = `${chapter.title}__${lesson}`;
+        const lessonName = typeof lesson === 'string' ? lesson : lesson.name;
+        const lessonKey = `${chapter.title}__${lessonName}`;
         
-        // Skip YouTube API call if this lesson already has a selected video
-        if (existingSelections[lessonKey]) {
-          
-          videosMap[lessonKey] = []; // Set empty array since we don't need to show other options
-          continue;
-        }
-        
+        const searchQuery = typeof lesson === 'string' 
+          ? buildVideoQuery(courseData?.name, lesson) 
+          : lesson.youtubeSearchQuery || buildVideoQuery(courseData?.name, lesson.name);
+
         try {
-          const searchQuery = buildVideoQuery(topicName, lesson);
           const videos = await getVideos(searchQuery);
-          videosMap[lessonKey] = videos;
-        } catch {
-          videosMap[lessonKey] = [];
+          setLessonVideos(prev => ({ ...prev, [lessonKey]: videos }));
+        } catch (error) {
+          console.error("Failed to fetch video for", lessonKey, error);
+          setLessonVideos(prev => ({ ...prev, [lessonKey]: [] }));
         }
       }
     }
-    setLessonVideos(videosMap);
   };
 
-
-
+  const router = require('next/navigation').useRouter();
 
   const saveSelectedVideos = async () => {
-    // Delete existing videos for this course
+    setLoading(true);
     await db.delete(CourseVideos).where(eq(CourseVideos.courseId, courseId));
-    // Insert new video selections
     const videoInserts = [];
     for (const [lessonKey, video] of Object.entries(selectedVideos)) {
       if (video) {
-        const [chapterTitle, subtopicName] = lessonKey.split("__");
         videoInserts.push({
           courseId,
-          chapterTitle,
-          subtopicName,
+          chapterTitle: lessonKey.split("__")[0],
+          subtopicName: lessonKey.split("__")[1],
           videoData: video,
         });
       }
@@ -114,228 +95,140 @@ function ChooseVideosPage() {
       await db.insert(CourseVideos).values(videoInserts);
     }
     toast.success("Videos saved successfully!");
+    router.push(`/dashboard/learnCourse/${courseId}`);
   };
-
-
-
-const loadExistingVideos = async () => {
-  const existingVideos = await db
-    .select()
-    .from(CourseVideos)
-    .where(eq(CourseVideos.courseId, courseId));
-  
-  const videoMap = {};
-  existingVideos.forEach(row => {
-    const lessonKey = `${row.chapterTitle}__${row.subtopicName}`;
-    videoMap[lessonKey] = row.videoData;
-  });
-  
-  setSelectedVideos(videoMap);
-  return videoMap; // Return the map so other functions can use it
-};
-
-
 
   return (
     <div className="max-w-3xl mx-auto mt-10 p-6 bg-background">
-      <LoadingDialouge loading={loading} activeStep={'Fetching Videos'} />
-      <LoadingDialouge loading={finishing} activeStep={'Finishing Course'} />
-      <a href="/dashboard" className="text-xs text-primary hover:underline mb-4 inline-block">
-        <ArrowLeft size={14} className="inline mr-1" /> Back to Dashboard
-      </a>
-      <h2 className="font-bold text-2xl mb-2 text-center text-foreground">Choose Videos</h2>
-      <p className="text-sm text-muted-foreground text-center mb-6">
-        Select videos for each lesson in your course
-      </p>
-      {!course && <div className="text-muted-foreground">Loading course...</div>}
-      {course && (
-        <>
-          <div className="mb-8">
-            <h3 className="font-semibold text-lg text-foreground">Course: {course.name}</h3>
-            <p className="text-sm text-muted-foreground">{course.description}</p>
-          </div>
-          <div>
-            {roadmap.map((chapter, index) => (
-              <div key={index} className="border border-border p-4 rounded-lg mb-3 bg-card">
-                <div className="flex items-center gap-3">
-                  <h3 className="bg-primary h-10 w-10 rounded-full text-white text-center flex items-center justify-center">
-                    {index + 1}
-                  </h3>
-                  <h3 className="font-medium text-lg text-foreground">{chapter.title}</h3>
-                </div>
-                <div className="mt-2">
-                  <h4 className="font-semibold text-foreground">Lessons:</h4>
-                  <ul className="list-inside mt-1">
-                    {chapter.subtopics.map((lesson, lessonIndex) => {
-                      const lessonKey = `${chapter.title}__${lesson}`;
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-bold text-2xl text-foreground">Choose Videos</h2>
+        <div className="flex gap-2">
+          <Button variant="secondary" size="sm" onClick={() => router.push(`/dashboard/learnCourse/${courseId}`)}>
+            Skip
+          </Button>
+          <Button size="sm" onClick={saveSelectedVideos} disabled={Object.keys(selectedVideos).length === 0 || loading}>
+            {loading ? "Saving..." : "Save & Continue"}
+          </Button>
+        </div>
+      </div>
+
+      <div className="mb-4">
+        <p className="text-sm text-muted-foreground text-center">
+          Course: {course ? course.name : "Select a course"}
+        </p>
+      </div>
+
+      <Tabs defaultValue="all" value={tab} onValueChange={setTab}>
+        <TabsList>
+          <TabsTrigger value="all">All Videos</TabsTrigger>
+          <TabsTrigger value="selected">
+            {Object.keys(selectedVideos).length} Selected
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="all" className="space-y-6">
+          <Accordion type="single" collapsible defaultValue="chapter-0" className="w-full space-y-4">
+            {roadmap.map((chapter, cIndex) => (
+              <AccordionItem key={cIndex} value={`chapter-${cIndex}`} className="border rounded-xl px-5 bg-card shadow-sm">
+                <AccordionTrigger className="text-lg font-bold hover:no-underline">{chapter.title}</AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4 mt-2">
+                    {chapter.subtopics.map((lessonObj, lIndex) => {
+                      const lessonName = typeof lessonObj === 'string' ? lessonObj : lessonObj.name;
+                      const lessonKey = `${chapter.title}__${lessonName}`;
                       const videos = lessonVideos[lessonKey] || [];
                       return (
-                        <li
-                          key={lessonIndex}
-                          className="text-sm mb-4 text-foreground"
+                        <div
+                          key={lessonKey}
+                          className="border rounded-lg p-4 bg-muted/30"
                         >
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="bg-primary h-7 w-7 rounded-full text-white text-center flex items-center justify-center font-semibold">
-                              {lessonIndex + 1}
-                            </span>
-                            <span className="font-semibold text-foreground">{lesson}</span>
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-full capitalize">{lessonName}</span>
                           </div>
-                          <div className="flex gap-4 flex-wrap">
-                            {/* Show existing selected video if any */}
-                            {selectedVideos[lessonKey] && (
-                              <div className="border-2 border-accent rounded-lg p-2 w-48 flex flex-col items-center">
-                                <img
-                                  src={selectedVideos[lessonKey].snippet?.thumbnails?.medium?.url || "/placeholder.png"}
-                                  alt="Selected Video"
-                                  className="w-full h-24 object-cover rounded mb-2"
-                                />
-                                <div className="text-xs mb-1 font-semibold text-accent">
-                                  {selectedVideos[lessonKey].snippet?.channelTitle || "Custom Video"}
-                                </div>
-                                <div className="text-xs mb-2 text-muted-foreground">
-                                  {selectedVideos[lessonKey].snippet?.title || selectedVideos[lessonKey].customUrl || "Selected"}
-                                </div>
-                                <Button 
-                                  variant="default"
-                                  size="sm"
-                                  className="text-xs"
-                                  onClick={async () => {
-                                    setSelectedVideos(prev => ({ ...prev, [lessonKey]: null }));
-                                    
-                                    if (!lessonVideos[lessonKey] || lessonVideos[lessonKey].length === 0) {
-                                      try {
-                                        const lessonName = lessonKey.split('__')[1];
-                                        const searchQuery = buildVideoQuery(course?.name, lessonName);
-                                        const videos = await getVideos(searchQuery);
-                                        setLessonVideos(prev => ({ ...prev, [lessonKey]: videos }));
-                                      } catch (error) {
-                                        console.error("Error fetching videos:", error);
-                                      }
-                                    }
-                                  }}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-2">
+                            {videos.map((video, vIdx) => {
+                              const selectedVidId = selectedVideos[lessonKey]?.id?.videoId || selectedVideos[lessonKey]?.id;
+                              const currentVidId = video.id?.videoId || video.id;
+                              const isSelected = selectedVidId === currentVidId && currentVidId;
+                              return (
+                                <div
+                                  key={vIdx}
+                                  className="bg-background border rounded-lg p-3 flex flex-col"
                                 >
-                                  <Check size={14} className="mr-1" />
-                                  Selected
-                                </Button>
-                              </div>
-                            )}
-                            
-                            {/* Show YouTube videos if no selection made */}
-                            {!selectedVideos[lessonKey] && videos.length === 0 && (
-                              <div className="text-xs text-muted-foreground">
+                                  <img
+                                    src={video.snippet?.thumbnails?.medium?.url || video.snippet?.thumbnails?.default?.url || "/placeholder.jpg"}
+                                    alt={video.snippet?.title || "Video"}
+                                    className="w-full h-28 object-cover rounded-md mb-2 bg-muted"
+                                  />
+                                  <div className="text-xs font-medium text-foreground line-clamp-2 mb-1" dangerouslySetInnerHTML={{ __html: video.snippet?.title || "Selected Video" }}></div>
+                                  <div className="text-xs text-muted-foreground mb-3">
+                                    {video.snippet?.channelTitle || "Unknown"}
+                                  </div>
+                                  <Button
+                                    variant={isSelected ? "default" : "outline"}
+                                    size="sm"
+                                    className="mt-auto w-full"
+                                    onClick={() => setSelectedVideos(prev => ({ ...prev, [lessonKey]: video }))}
+                                  >
+                                    {isSelected ? "Selected" : "Select"}
+                                  </Button>
+                                </div>
+                              );
+                            })}
+                            {videos.length === 0 && (
+                              <div className="text-sm text-muted-foreground py-4 px-2">
                                 No videos found.
                               </div>
                             )}
-                            {!selectedVideos[lessonKey] && videos.map((video, vidIdx) => (
-                              <div
-                                key={vidIdx}
-                                className="border border-border rounded-lg p-2 w-48 flex flex-col items-center hover:border-primary cursor-pointer bg-muted transition-colors"
-                              >
-                                <img
-                                  src={video.snippet?.thumbnails?.medium?.url}
-                                  alt="Thumbnail"
-                                  className="w-full h-24 object-cover rounded mb-2"
-                                />
-                                <div className="text-xs mb-1 text-foreground">
-                                  {video.snippet?.channelTitle}
-                                </div>
-                                <div className="text-xs mb-2 text-muted-foreground">
-                                  {video.snippet?.title}
-                                </div>
-                                <Button 
-                                  variant="default"
-                                  size="sm"
-                                  className="text-xs"
-                                  onClick={() => setSelectedVideos(prev => ({ ...prev, [lessonKey]: video }))}
-                                >
-                                  Select
-                                </Button>
-                              </div>
-                            ))}
-                            
-                            {/* Skip and Custom URL buttons */}
-                            {!selectedVideos[lessonKey] && (
-                              <>
-                                <Button
-                                  variant="secondary"
-                                  size="sm"
-                                  className="text-xs h-fit"
-                                  onClick={() => setSelectedVideos(prev => ({ ...prev, [lessonKey]: { skipped: true } }))}
-                                >
-                                  Skip
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-xs h-fit"
-                                  onClick={() => setShowCustomInput(prev => ({ ...prev, [lessonKey]: true }))}
-                                >
-                                  Add Custom URL
-                                </Button>
-                              </>
-                            )}
-                            
-                            {/* Custom URL input */}
-                            {showCustomInput[lessonKey] && (
-                              <div className="flex flex-col gap-1">
-                                <Input
-                                  type="text"
-                                  placeholder="Paste YouTube URL"
-                                  value={customUrls[lessonKey] || ""}
-                                  onChange={(e) => setCustomUrls(prev => ({ ...prev, [lessonKey]: e.target.value }))}
-                                  className="text-xs"
-                                />
-                                <Button
-                                  variant="default"
-                                  size="sm"
-                                  className="text-xs"
-                                  onClick={() => {
-                                    setSelectedVideos(prev => ({ ...prev, [lessonKey]: { customUrl: customUrls[lessonKey] } }));
-                                    setShowCustomInput(prev => ({ ...prev, [lessonKey]: false }));
-                                    setCustomUrls(prev => ({ ...prev, [lessonKey]: "" }));
-                                  }}
-                                >
-                                  Save URL
-                                </Button>
-                              </div>
-                            )}
                           </div>
-                        </li>
+                        </div>
                       );
                     })}
-                  </ul>
-                </div>
-              </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
             ))}
-          </div>
-          
-          {/* Only Finish Button */}
-          <div className="mt-8 text-center flex gap-4 justify-center">
-            <Button
-              size="lg"
-              className="px-6 py-3 text-base font-semibold"
-              onClick={async () => {
-                try {
-                  setFinishing(true);
-                  await saveSelectedVideos();
-                  toast.success("Course setup completed successfully! Content will be generated when you access each lesson.");
-                  window.location.href = `/dashboard`;
-                } catch (error) {
-                  console.error("Error finishing course:", error);
-                  toast.error("An error occurred while finishing the course. Please try again.");
-                } finally {
-                  setFinishing(false);
-                }
-              }}
-              disabled={Object.keys(selectedVideos).length === 0 || finishing}
-            >
-              {finishing ? "Processing..." : "Finish Course"}
-            </Button>
-          </div>
-        </>
-      )}
+          </Accordion>
+        </TabsContent>
+
+        <TabsContent value="selected">
+          {Object.keys(selectedVideos).length === 0 ? (
+            <p className="text-center text-sm text-muted-foreground">No videos selected yet</p>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Object.entries(selectedVideos).map(([lessonKey, video]) => {
+                if (!video) return null;
+                const [chapterTitle, subtopicName] = lessonKey.split("__");
+                const thumbnailUrl = video?.snippet?.thumbnails?.medium?.url || video?.snippet?.thumbnails?.default?.url;
+                return (
+                  <div
+                    key={lessonKey}
+                    className="border rounded-lg p-3 bg-card shadow-sm flex flex-col"
+                  >
+                    <div className="text-xs font-bold text-primary mb-2 line-clamp-1">{chapterTitle}: {subtopicName}</div>
+                    <img
+                      src={thumbnailUrl || "/placeholder.jpg"}
+                      alt={video?.snippet?.title || "Selected video"}
+                      className="w-full h-28 object-cover rounded-md mb-2 bg-muted"
+                    />
+                    <div className="text-xs font-medium text-foreground line-clamp-2 mb-3" dangerouslySetInnerHTML={{ __html: video?.snippet?.title || "Selected Video" }}></div>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="mt-auto w-full"
+                      onClick={() => setSelectedVideos(prev => { const updated = {...prev}; delete updated[lessonKey]; return updated; })}
+                    >
+                      Deselect
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
 
-export default ChooseVideosPage;
+

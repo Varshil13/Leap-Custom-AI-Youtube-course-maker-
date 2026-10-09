@@ -1,6 +1,6 @@
 import { Geist, Geist_Mono} from "next/font/google";
 import "./globals.css";
-import { ClerkProvider, GoogleOneTap } from "@clerk/nextjs";
+import NextAuthSessionProvider from "@/components/SessionProvider";
 import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
@@ -20,15 +20,14 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <ClerkProvider>
-      <GoogleOneTap />
-
+    <NextAuthSessionProvider>
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Toaster 
           position="top-right"
+          containerStyle={{ zIndex: 999999 }}
           toastOptions={{
             style: {
               background: '#1e293b',
@@ -52,6 +51,6 @@ export default function RootLayout({ children }) {
         {children}
       </body>
     </html>
-    </ClerkProvider>
+    </NextAuthSessionProvider>
   );
 }

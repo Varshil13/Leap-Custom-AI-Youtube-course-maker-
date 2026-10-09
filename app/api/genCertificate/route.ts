@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { db } from '@/services/db';
 import { Certificates, UserProgress, CourseDetails } from '@/services/schema';
-import { auth } from '@clerk/nextjs/server';
+import { getServerSession } from "next-auth/next";
 import { and, eq } from 'drizzle-orm';
 
 // Helper to check eligibility (same logic as checkEligibility API)
@@ -56,7 +56,7 @@ async function checkCourseCompletion(userId: string, courseId: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const session = await getServerSession(); const userId = session?.user?.email;
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

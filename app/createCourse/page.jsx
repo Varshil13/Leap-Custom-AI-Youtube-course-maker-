@@ -11,7 +11,7 @@ import LoadingDialouge from "./_components/LoadingDialouge";
 import toast from "react-hot-toast";
 import { CourseDetails } from "@/services/schema";
 import { v4 } from 'uuid';
-import { useUser } from "@clerk/nextjs";
+import { useSession } from "next-auth/react";
 import { db } from "@/services/db";
 import { useRouter } from 'next/navigation';
 import { extractJsonArray } from "@/app/_utils/extractJsonArray";
@@ -19,34 +19,46 @@ import { extractJsonArray } from "@/app/_utils/extractJsonArray";
 
 export default function CreateCoursePage() {
   const StepperOptions = [
-    { id: 1, label: "Roadmap", icon: <Map size={20} /> },
-    { id: 2, label: "Alter Roadmap", icon: <SlidersHorizontal size={20} /> },
-    
+    { id: 1, label: "Course Details", icon: <Map size={20} /> },
+    { id: 2, label: "Course Roadmap", icon: <SlidersHorizontal size={20} /> },
   ];
 
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const { userCourseInput, setUserCourseInput } = useContext(UserInputContext);
-  const {user} = useUser();
+  const { data: session } = useSession();
    const router = useRouter();
 
   const SaveRoadmaptoDB = async () => {
     var id = v4();
+
+    let initialNextVideo = null;
+    if (userCourseInput?.roadmap && userCourseInput.roadmap.length > 0) {
+      const firstChapter = userCourseInput.roadmap[0];
+      if (firstChapter.subtopics && firstChapter.subtopics.length > 0) {
+        initialNextVideo = typeof firstChapter.subtopics[0] === 'string' ? firstChapter.subtopics[0] : firstChapter.subtopics[0].name;
+      }
+    }
 
     const result = await db.insert(CourseDetails).values({
       courseId: id,
       name: userCourseInput?.topic,
       level: userCourseInput?.level,
       roadmap: JSON.stringify(userCourseInput?.roadmap),
-      createdBy: user?.primaryEmailAddress?.emailAddress,
-      userName: user?.fullName,
-      userProfileImage: user?.imageUrl,
+      createdBy: session?.user?.email,
+      userName: session?.user?.name,
+      userProfileImage: session?.user?.image,
       description: "", 
       duration: "",
       includeVideos: userCourseInput?.includeVideos ?? false,
+      nextVideoToWatch: initialNextVideo,
     });
     
-    router.replace('/createCourse/'+id+'/chooseVideos');
+    if (userCourseInput?.includeVideos) {
+      router.replace('/createCourse/'+id+'/chooseVideos');
+    } else {
+      router.replace('/dashboard/learnCourse/'+id);
+    }
   }
   const checkStatus = () => {
     if (
@@ -64,8 +76,8 @@ export default function CreateCoursePage() {
 
 **CRITICAL INSTRUCTIONS FOR OUTPUT FORMAT:**
 1.  The output MUST be a single, valid JSON array.
-2.  Each item in the array MUST be an object containing three keys: "id" (a sequential string starting from "1"), "title" (the main module name), and "subtopics" (an array of strings).
-3.  The subtopic strings MUST be extremely short (3-5 words max), concise, and cover the maximum possible detail by splitting complex topics into multiple, fine-grained items. Do NOT use bolding, asterisks, or any markdown formatting within the strings.
+2.  Each item in the array MUST be an object containing three keys: "id" (a sequential string starting from "1"), "title" (the main module name), and "subtopics" (an array of objects).
+3.  Each object inside the "subtopics" array MUST contain two keys: "name" (a very short 3-5 word string for the concept) and "youtubeSearchQuery" (a highly specific, SEO-optimized YouTube search query for finding a tutorial on this specific concept, making sure to include the main course topic for context).
 4.  The roadmap should be broken down into logical modules (titles) that progress naturally from foundational concepts to advanced/applied concepts.
 
 **INPUTS YOU MUST USE:**
@@ -74,8 +86,8 @@ export default function CreateCoursePage() {
 
 **EXAMPLE OF DESIRED OUTPUT STRUCTURE:**
 [
-  { "id": "1", "title": "Module Title One", "subtopics": ["Very short subtopic 1","Very short subtopic 2","Split concept for detail"] },
-  { "id": "2", "title": "Module Title Two", "subtopics": ["Concise concept A","Concise concept B","Advanced concept detail"] }
+  { "id": "1", "title": "Module Title One", "subtopics": [{ "name": "Very short subtopic 1", "youtubeSearchQuery": "${userCourseInput.topic} very short subtopic 1 tutorial" }, { "name": "Another subtopic", "youtubeSearchQuery": "${userCourseInput.topic} another subtopic complete guide" }] },
+  { "id": "2", "title": "Module Title Two", "subtopics": [{ "name": "Concise concept A", "youtubeSearchQuery": "${userCourseInput.topic} concise concept A explained" }] }
 ]`;
 
     try {
@@ -99,22 +111,23 @@ export default function CreateCoursePage() {
         roadmap: roadmap,
       }));
 
-     
+      return true;
     } catch (error) {
       console.error("Fetch failed:", error);
       toast.error("Failed to generate roadmap. Please try again.");
+      return false;
     }
   };
-
-  
 
   const handleNext = async () => {
     if (activeStep === 0) {
       setLoading(true);
-      await generateRoadmap();
+      const success = await generateRoadmap();
       setLoading(false);
-      setActiveStep(1 + activeStep);
-
+      
+      if (success) {
+        setActiveStep(1 + activeStep);
+      }
     } else if (activeStep === 1) {
       setLoading(true);
       await SaveRoadmaptoDB();
@@ -125,34 +138,36 @@ export default function CreateCoursePage() {
   return (
     <div className="bg-background min-h-screen">
       {/* Header / Stepper */}
-      <div className="flex flex-col items-center justify-center pt-10">
-        <a href="/dashboard" className="text-xs text-primary hover:underline mb-4">
+      <div className="flex flex-col items-center justify-center pt-6">
+        <a href="/dashboard" className="text-xs text-primary hover:underline mb-2">
           <ArrowLeft size={14} className="inline mr-1" /> Back to Dashboard
         </a>
-        <h1 className="text-3xl font-bold tracking-tight sm:text-6xl text-foreground">
+        <h1 className="text-3xl font-bold tracking-tight sm:text-5xl text-foreground">
           Create Course
         </h1>
-        <div className="flex mt-10">
+        <div className="flex mt-8">
           {StepperOptions.map((step, index) => (
-            <div className="flex items-center" key={index}>
-              <div className="flex flex-col items-center w-[50px] md:w-[100px]">
+            <div className="flex" key={index}>
+              <div className="flex flex-col items-center w-[60px] md:w-[120px]">
                 <div
-                  className={`p-3 rounded-full text-white ${
+                  className={`p-3 rounded-full text-white z-10 ${
                     activeStep >= index ? 'bg-primary' : 'bg-muted text-muted-foreground'
                   }`}
                 >
                   {step.icon}
                 </div>
-                <h2 className="hidden md:block md:text-sm font-bold text-foreground mt-2">
+                <h2 className="hidden md:block md:text-sm font-bold text-foreground mt-2 text-center">
                   {step.label}
                 </h2>
               </div>
               {index !== StepperOptions?.length - 1 && (
-                <div
-                  className={`h-1 w-[50px] md:w-[100px] rounded-full lg:w-[170px] ${
-                    activeStep > index ? 'bg-primary' : 'bg-muted'
-                  }`}
-                ></div>
+                <div className="pt-5 -ml-4 -mr-4 z-0">
+                  <div
+                    className={`h-1 w-[50px] md:w-[100px] rounded-full lg:w-[170px] ${
+                      activeStep > index ? 'bg-primary' : 'bg-muted'
+                    }`}
+                  ></div>
+                </div>
               )}
             </div>
           ))}
@@ -165,8 +180,8 @@ export default function CreateCoursePage() {
       
 
       {/* CTA */}
-      <div className=" mx-auto max-w-3xl">
-        <div className="pt-2 flex justify-between mt-10 text-center">
+      <div className="mx-auto max-w-3xl pb-10">
+        <div className="pt-2 flex justify-between mt-6 text-center">
           <Button
             variant="outline"
             disabled={activeStep === 0 || loading}

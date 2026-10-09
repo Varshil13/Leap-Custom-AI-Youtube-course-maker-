@@ -3,13 +3,17 @@ import nodemailer from 'nodemailer';
 import { db } from '@/services/db';
 import { Certificates } from '@/services/schema';
 import { eq, and } from 'drizzle-orm';
-import { auth } from '@clerk/nextjs/server';
+import { getServerSession } from "next-auth/next";
+import dns from 'dns';
+
+// Fix for Node 18+ DNS resolution issues with nodemailer
+dns.setDefaultResultOrder('ipv4first');
 
 export async function POST(request: NextRequest) {
   let certificateId: number;
   
   try {
-    const { userId } = await auth();
+    const session = await getServerSession(); const userId = session?.user?.email;
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -36,13 +40,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Certificate not found or unauthorized' }, { status: 404 });
     }
 
-    // Create Gmail transporter
+    // Create Gmail transporter bypassing DNS by using direct IP
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: '192.178.211.108', // Hardcoded IP for smtp.gmail.com to bypass queryA ETIMEOUT
+      port: 587,
+      secure: false, // true for 465, false for other ports
       auth: {
         user: process.env.GMAIL_USER,
         pass: process.env.GMAIL_APP_PASSWORD,
       },
+      tls: {
+        servername: 'smtp.gmail.com',
+        rejectUnauthorized: false
+      }
     });
 
     // Email content

@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 // Adjust these imports as needed for your project structure
 import { db } from "@/services/db";
-import { UserProgress } from "@/services/schema";
+import { UserProgress, CourseDetails } from "@/services/schema";
 import { eq, and } from "drizzle-orm";
 // If using Clerk for auth:
-import { auth } from "@clerk/nextjs/server";
+import { getServerSession } from "next-auth/next";
 
 // GET: Load user progress for a course
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const session = await getServerSession(); const userId = session?.user?.email;
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 // POST: Save user progress
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const session = await getServerSession(); const userId = session?.user?.email;
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -103,6 +103,36 @@ export async function POST(request: NextRequest) {
         isWatched,
         watchedAt: isWatched ? new Date() : null,
       });
+    }
+
+    // Update nextVideoToWatch in CourseDetails
+    try {
+      const courseRows = await db.select({ roadmap: CourseDetails.roadmap }).from(CourseDetails).where(eq(CourseDetails.courseId, courseId));
+      if (courseRows.length > 0) {
+        const roadmap = typeof courseRows[0].roadmap === 'string' ? JSON.parse(courseRows[0].roadmap) : courseRows[0].roadmap;
+        
+        // Fetch all progress for this course
+        const allProgress = await db.select().from(UserProgress).where(and(eq(UserProgress.userId, userId), eq(UserProgress.courseId, courseId)));
+        const watchedMap = new Set(allProgress.filter(p => p.isWatched).map(p => `${p.chapterTitle}__${p.subtopicName}`));
+        
+        let nextVideo = null;
+        if (roadmap && Array.isArray(roadmap)) {
+          for (const ch of roadmap) {
+            for (const sub of (ch.subtopics || [])) {
+              const subName = typeof sub === 'string' ? sub : sub.name;
+              if (!watchedMap.has(`${ch.title}__${subName}`)) {
+                nextVideo = subName;
+                break;
+              }
+            }
+            if (nextVideo) break;
+          }
+        }
+        
+        await db.update(CourseDetails).set({ nextVideoToWatch: nextVideo }).where(eq(CourseDetails.courseId, courseId));
+      }
+    } catch (updateErr) {
+      console.error("Failed to update nextVideoToWatch:", updateErr);
     }
 
     return NextResponse.json({ success: true });

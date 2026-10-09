@@ -1,18 +1,9 @@
 import React from "react";
-import { BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-
-const courseGradients = [
-  "from-indigo-500/20 via-purple-500/20 to-pink-500/20",
-  "from-amber-500/20 via-orange-500/20 to-red-500/20",
-  "from-emerald-500/20 via-teal-500/20 to-cyan-500/20",
-  "from-rose-500/20 via-pink-500/20 to-fuchsia-500/20",
-  "from-blue-500/20 via-cyan-500/20 to-teal-500/20",
-];
 
 export function CourseCard({
   course,
@@ -27,19 +18,26 @@ export function CourseCard({
   onAction,
   actionVariant = "default",
 }) {
-  const colorIdx = (course?.courseId || "").charCodeAt(0) % courseGradients.length;
+  const isCompleted = courseProgress === 100 || completionBadge;
 
   return (
-    <Card className="overflow-hidden group transition-shadow duration-200 hover:shadow-lg">
-      <div
-        className={cn(
-          "h-32 w-full flex items-center justify-center bg-gradient-to-br",
-          courseGradients[colorIdx]
-        )}
-      >
-        <BookOpen size={48} className="text-primary/50" />
+    <Card className="overflow-hidden group transition-all duration-200 hover:shadow-lg border-border/40 bg-card flex flex-col h-full">
+      <div className="relative p-5 w-full bg-[#0a0a0a] border-b border-border/40 flex flex-col justify-center min-h-[96px]">
+        {/* Subtle dot matrix pattern (Google/Vercel style) */}
+        <div className="absolute inset-0 opacity-[0.15]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '16px 16px' }}></div>
+        
+        <div className="relative z-10 flex flex-col items-start gap-1">
+          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+            {isCompleted ? "Completed" : courseProgress === 0 ? "Start from" : "Continue from"}
+          </span>
+          <p className={cn("text-sm font-semibold line-clamp-2", isCompleted ? "text-emerald-400" : "text-cyan-400")}>
+            {isCompleted 
+              ? "All topics finished" 
+              : course?.nextVideoToWatch || "Next Topic"}
+          </p>
+        </div>
       </div>
-      <CardContent className="p-4 space-y-3">
+      <CardContent className="p-4 flex flex-col flex-grow space-y-3">
         <div>
           <h3 className="font-semibold text-foreground truncate">{course?.name}</h3>
           {course?.description && (
@@ -58,7 +56,7 @@ export function CourseCard({
             </span>
           </div>
         )}
-        <div className="flex gap-2">
+        <div className="flex gap-2 mt-auto pt-2">
           {onView && (
             <Button
               size="sm"

@@ -2,11 +2,11 @@ import { db } from '@/services/db';
 import { CourseDetails, CourseVideos, CourseContent, UserProgress, Certificates } from '@/services/schema';
 import { eq, and } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { getServerSession } from "next-auth/next";
 
 export async function DELETE(req: Request) {
   try {
-    const { userId } = await auth();
+    const session = await getServerSession(); const userId = session?.user?.email;
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

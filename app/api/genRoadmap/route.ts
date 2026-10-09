@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateAIResponse } from '@/services/gemini';
-import { auth } from '@clerk/nextjs/server';
+import { getServerSession } from "next-auth/next";
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const session = await getServerSession(); const userId = session?.user?.email;
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

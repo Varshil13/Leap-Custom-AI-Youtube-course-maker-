@@ -50,7 +50,6 @@ function TopicForm() {
               <Input
                 id="topic"
                 type="text"
-                placeholder="e.g. React for Beginners"
                 value={topic}
                 onChange={(e) => handleTopic(e.target.value)}
                 autoComplete="off"

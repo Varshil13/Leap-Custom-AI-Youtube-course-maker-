@@ -9,11 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { useUser } from "@clerk/nextjs";
-import LaTeXRenderer from "@/app/_components/LaTeXRenderer";
-import 'katex/dist/katex.min.css';
+import { useSession } from "next-auth/react";
+import ReactMarkdown from 'react-markdown';
 import { Check, BookOpen, FileText, PartyPopper, ArrowLeft, ArrowRight } from "lucide-react";
 import toast from "react-hot-toast";
+import VideoChat from "./_components/VideoChat";
+import GlobalChatWidget from "./_components/GlobalChatWidget";
 
 
 
@@ -22,7 +23,7 @@ import toast from "react-hot-toast";
 
 function LearnCoursePage() {
   const { courseId } = useParams();
-  const { user } = useUser();
+  const { data: session } = useSession();
   const [course, setCourse] = useState(null);
   const [videos, setVideos] = useState([]);
   const [roadmap, setRoadmap] = useState([]);
@@ -35,12 +36,12 @@ function LearnCoursePage() {
   const [contentCache, setContentCache] = useState({});
 
   useEffect(() => {
-    if (courseId && user) {
+    if (courseId && session?.user?.email) {
       fetchCourse();
       fetchCourseContent();
       loadProgress();
     }
-  }, [courseId, user]);
+  }, [courseId, session]);
   // Load user progress from API
   const loadProgress = async () => {
     try {
@@ -145,7 +146,7 @@ function LearnCoursePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          courseName: course?.name || 'Programming Course',
+          courseId, courseName: course?.name || 'Programming Course',
           courseDescription: course?.description || '',
           level: course?.level || 'Beginner',
           chapterTitle,
@@ -270,7 +271,7 @@ function LearnCoursePage() {
         <div className="overflow-y-auto max-h-[calc(100vh-140px)] p-4">
           {roadmap.map((chapter, idx) => {
             const chapterWatched = (chapter.subtopics || []).filter(
-              sub => watched[`${chapter.title}__${sub}`]
+              sub => watched[`${chapter.title}__${typeof sub === 'string' ? sub : sub.name}`]
             ).length;
             const chapterTotal = (chapter.subtopics || []).length;
             const isChapterComplete = chapterTotal > 0 && chapterWatched === chapterTotal;
@@ -286,7 +287,8 @@ function LearnCoursePage() {
                 </div>
                 <ul className="ml-10 space-y-1">
                 {(chapter.subtopics || []).map((subtopic, sidx) => {
-                  const lessonKey = `${chapter.title}__${subtopic}`;
+                  const subName = typeof subtopic === 'string' ? subtopic : subtopic.name;
+                  const lessonKey = `${chapter.title}__${subName}`;
                   const isWatched = watched[lessonKey];
                   const isActive = selectedKey === lessonKey;
                   return (
@@ -299,7 +301,7 @@ function LearnCoursePage() {
                       }`}
                       onClick={() => setSelectedKey(lessonKey)}
                     >
-                      <span className="flex-1">{subtopic}</span>
+                      <span className="flex-1">{subName}</span>
                       {isWatched && (
                         <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
                           isActive ? 'bg-primary-foreground text-primary' : 'bg-accent text-white'
@@ -318,8 +320,9 @@ function LearnCoursePage() {
       </div>
                
       {/* Main section: show video */}
-      <div className="flex-1 overflow-y-auto bg-background">
-        <div className="max-w-4xl mx-auto p-8">
+      <div className="flex-1 flex flex-col xl:flex-row overflow-hidden bg-background">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8">
+        <div className="max-w-4xl mx-auto">
           {!selectedKey && (
             <div className="flex flex-col items-center justify-center h-96 text-center">
                 <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-4">
@@ -337,52 +340,52 @@ function LearnCoursePage() {
               const contentRow = getContentForSubtopic(chapterTitle, subtopicName);
               // Find chapter explanation (where subtopicName === chapterTitle)
               const chapterExplanation = getContentForSubtopic(chapterTitle, chapterTitle);
-              if (!videoData) return <div className="text-muted-foreground">No video found for this subtopic.</div>;
-              if (videoData.skipped) return <div className="text-muted-foreground">This subtopic was skipped.</div>;
               let videoSection = null;
-              if (videoData.customUrl) {
-                // Extract YouTube video ID from URL
-                const url = videoData.customUrl;
-                let vidId = "";
-                try {
-                  const urlObj = new URL(url);
-                  if (urlObj.searchParams.get("v")) {
-                    vidId = urlObj.searchParams.get("v");
-                  } else if (urlObj.pathname.startsWith("/embed/")) {
-                    vidId = urlObj.pathname.split("/embed/")[1];
-                  } else if (urlObj.pathname.startsWith("/watch/")) {
-                    vidId = urlObj.pathname.split("/watch/")[1];
-                  } else {
+              if (course?.includeVideos !== false && videoData && !videoData.skipped) {
+                if (videoData.customUrl) {
+                  // Extract YouTube video ID from URL
+                  const url = videoData.customUrl;
+                  let vidId = "";
+                  try {
+                    const urlObj = new URL(url);
+                    if (urlObj.searchParams.get("v")) {
+                      vidId = urlObj.searchParams.get("v");
+                    } else if (urlObj.pathname.startsWith("/embed/")) {
+                      vidId = urlObj.pathname.split("/embed/")[1];
+                    } else if (urlObj.pathname.startsWith("/watch/")) {
+                      vidId = urlObj.pathname.split("/watch/")[1];
+                    } else {
+                      vidId = url.split("v=")[1] || url;
+                    }
+                  } catch {
                     vidId = url.split("v=")[1] || url;
                   }
-                } catch {
-                  vidId = url.split("v=")[1] || url;
+                  videoSection = (
+                    <iframe
+                      width="100%"
+                      height="400"
+                      src={`https://www.youtube.com/embed/${vidId}`}
+                      title="Custom Video"
+                      frameBorder="0"
+                      allowFullScreen
+                      className="rounded"
+                    />
+                  );
+                } else {
+                  // Standard YouTube video
+                  const vidId = videoData.id?.videoId || (typeof videoData.id === 'string' ? videoData.id : "");
+                  videoSection = (
+                    <iframe
+                      width="100%"
+                      height="400"
+                      src={`https://www.youtube.com/embed/${vidId}`}
+                      title={videoData.snippet?.title || subtopicName}
+                      frameBorder="0"
+                      allowFullScreen
+                      className="rounded"
+                    />
+                  );
                 }
-                videoSection = (
-                  <iframe
-                    width="100%"
-                    height="400"
-                    src={`https://www.youtube.com/embed/${vidId}`}
-                    title="Custom Video"
-                    frameBorder="0"
-                    allowFullScreen
-                    className="rounded"
-                  />
-                );
-              } else {
-                // Standard YouTube video
-                const vidId = videoData.id?.videoId || videoData.id;
-                videoSection = (
-                  <iframe
-                    width="100%"
-                    height="400"
-                    src={`https://www.youtube.com/embed/${vidId}`}
-                    title={videoData.snippet?.title || subtopicName}
-                    frameBorder="0"
-                    allowFullScreen
-                    className="rounded"
-                  />
-                );
               }
               return (
                 <div className="w-full">
@@ -398,7 +401,7 @@ function LearnCoursePage() {
                         checked={!!watched[selectedKey]}
                         onCheckedChange={() => toggleWatched(selectedKey)}
                         disabled={loadingProgress}
-                        className="w-5 h-5"
+                        className="w-5 h-5 border-2 border-primary/50 bg-background data-[state=checked]:border-primary data-[state=checked]:bg-primary"
                       />
                       <Label htmlFor="mark-watched" className="text-sm font-medium text-foreground cursor-pointer mb-0">
                         {loadingProgress ? "Saving..." : "Mark as Watched"}
@@ -412,21 +415,25 @@ function LearnCoursePage() {
                   </div>
 
                   {/* Video Details */}
-                  <div className="mb-8">
-                    <h3 className="text-lg font-semibold mb-3 text-foreground">
-                      {videoData.snippet?.title || subtopicName}
-                    </h3>
-                    {videoData.snippet?.channelTitle && (
-                      <p className="text-sm mb-4 text-muted-foreground">By {videoData.snippet.channelTitle}</p>
-                    )}
-                  </div>
+                  {videoSection && (
+                    <div className="mb-8">
+                      <h3 className="text-lg font-semibold mb-3 text-foreground">
+                        {videoData?.snippet?.title || subtopicName}
+                      </h3>
+                      {videoData?.snippet?.channelTitle && (
+                        <p className="text-sm mb-4 text-muted-foreground">By {videoData.snippet.channelTitle}</p>
+                      )}
+                    </div>
+                  )}
 
                   {/* Chapter Introduction */}
                   {subtopicName === chapterTitle && (
                     <div className="mb-8 p-8 rounded-lg bg-muted border-l-4 border-primary">
                       <h4 className="text-xl font-semibold mb-4 text-primary">Chapter Overview</h4>
                       {chapterExplanation && chapterExplanation.contentData?.content ? (
-                        <LaTeXRenderer content={chapterExplanation.contentData.content} />
+                        <div className="prose prose-sm dark:prose-invert max-w-none">
+                          <ReactMarkdown>{chapterExplanation.contentData.content}</ReactMarkdown>
+                        </div>
                       ) : (
                         <div className="text-center py-4">
                           <p className="text-muted-foreground mb-3">
@@ -459,7 +466,9 @@ function LearnCoursePage() {
                         <p className="text-muted-foreground">Generating content for this lesson...</p>
                       </div>
                     ) : contentRow && contentRow.contentData?.content ? (
-                      <LaTeXRenderer content={contentRow.contentData.content} />
+                      <div className="prose prose-sm dark:prose-invert max-w-none">
+                        <ReactMarkdown>{contentRow.contentData.content}</ReactMarkdown>
+                      </div>
                     ) : (
                       <div className="flex flex-col items-center gap-4 py-8">
                         <div className="w-16 h-16 rounded-full bg-background flex items-center justify-center">
@@ -490,7 +499,7 @@ function LearnCoursePage() {
                   {/* Next/Previous Lesson Navigation */}
                   {(() => {
                     const flatLessons = roadmap.flatMap(ch =>
-                      (ch.subtopics || []).map(sub => ({ chapter: ch.title, subtopic: sub }))
+                      (ch.subtopics || []).map(sub => ({ chapter: ch.title, subtopic: typeof sub === 'string' ? sub : sub.name }))
                     );
                     const currentIdx = flatLessons.findIndex(
                       l => l.chapter === chapterTitle && l.subtopic === subtopicName
@@ -532,7 +541,32 @@ function LearnCoursePage() {
               );
             })()}
         </div>
+        </div>
+        {/* Chat Section */}
+        {selectedKey && (() => {
+          const [chapterTitle, subtopicName] = selectedKey.split("__");
+          const videoData = getVideoForKey(chapterTitle, subtopicName);
+          let vidId = "";
+          if (videoData) {
+            if (videoData.customUrl) {
+              try {
+                const urlObj = new URL(videoData.customUrl);
+                vidId = urlObj.searchParams.get("v") || urlObj.pathname.split("/embed/")[1] || urlObj.pathname.split("/watch/")[1] || videoData.customUrl.split("v=")[1] || videoData.customUrl;
+              } catch {
+                vidId = videoData.customUrl.split("v=")[1] || videoData.customUrl;
+              }
+            } else {
+              vidId = videoData.id?.videoId || (typeof videoData.id === 'string' ? videoData.id : "");
+            }
+          }
+          return (
+             <div className="w-full xl:w-[400px] shrink-0 h-[500px] xl:h-auto border-t xl:border-t-0 xl:border-l border-border bg-card">
+               <VideoChat videoId={vidId} chapterTitle={chapterTitle} subtopicName={subtopicName} courseId={courseId} />
+             </div>
+          );
+        })()}
       </div>
+      <GlobalChatWidget courseId={courseId} />
     </div>
   );
 }

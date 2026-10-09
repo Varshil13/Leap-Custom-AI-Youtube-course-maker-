@@ -15,7 +15,7 @@ function Hero() {
       <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight animate-fade-in-up animation-delay-100">
           Create Custom AI-Powered Courses{' '}
-          <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             Instantly
           </span>
         </h1>

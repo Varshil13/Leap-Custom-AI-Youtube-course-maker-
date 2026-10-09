@@ -25,7 +25,8 @@ export async function generateAIResponse(prompt: string): Promise<{
     },
     body: JSON.stringify({
       model,
-      temperature: 0.9,
+      temperature: 0.7,
+      max_tokens: 8000,
       messages: [
         {
           role: 'user',

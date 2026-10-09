@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useSession } from "next-auth/react";
 import { db } from "@/services/db";
 import { CourseDetails } from "@/services/schema";
 import { eq } from "drizzle-orm";
@@ -12,7 +12,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 
 function CompletedCourses() {
   const [certificateLoading, setCertificateLoading] = useState({});
-  const { user } = useUser();
+  const { data: session } = useSession();
   const [courses, setCourses] = useState([]);
   const [progressCache, setProgressCache] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -31,7 +31,7 @@ function CompletedCourses() {
 
   useEffect(() => {
     const fetchAll = async () => {
-      if (user?.id) {
+      if (session?.user?.email) {
         setLoading(true);
         const fetchedCourses = await fetchCourses();
         await fetchAllProgress(fetchedCourses);
@@ -39,35 +39,44 @@ function CompletedCourses() {
       }
     };
     fetchAll();
-  }, [user]);
+  }, [session]);
 
   const fetchCourses = async () => {
+    if(!session?.user?.email) return [];
     const result = await db
       .select()
       .from(CourseDetails)
-      .where(eq(CourseDetails.createdBy, user.emailAddresses[0].emailAddress));
+      .where(eq(CourseDetails.createdBy, session.user.email));
     setCourses(result);
     return result;
   };
 
   const fetchAllProgress = async (fetchedCourses) => {
     const progressObj = { ...progressCache };
-    for (const course of fetchedCourses) {
-      if (progressObj[course.courseId] !== undefined) continue;
-      const res = await fetch(`/api/progress?courseId=${course.courseId}`);
-      if (!res.ok) continue;
-      const data = await res.json();
-      const watchedCount = Object.values(data.progress || {}).filter(Boolean).length;
-      let totalLessons = 0;
+    
+    const fetchPromises = fetchedCourses.map(async (course) => {
+      if (progressObj[course.courseId] !== undefined) return;
       try {
-        const roadmap = typeof course.roadmap === "string" ? JSON.parse(course.roadmap) : course.roadmap;
-        totalLessons = roadmap?.reduce((sum, ch) => sum + (ch.subtopics?.length || 0), 0) || 0;
-      } catch {
-        totalLessons = 0;
+        const res = await fetch(`/api/progress?courseId=${course.courseId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const watchedCount = Object.values(data.progress || {}).filter(Boolean).length;
+        let totalLessons = 0;
+        try {
+          const roadmap = typeof course.roadmap === "string" ? JSON.parse(course.roadmap) : course.roadmap;
+          totalLessons = roadmap?.reduce((sum, ch) => sum + (ch.subtopics?.length || 0), 0) || 0;
+        } catch {
+          totalLessons = 0;
+        }
+        const percent = totalLessons > 0 ? Math.round((watchedCount / totalLessons) * 100) : 0;
+        progressObj[course.courseId] = percent;
+      } catch (e) {
+        console.error("Error fetching progress for course", course.courseId, e);
       }
-      const percent = totalLessons > 0 ? Math.round((watchedCount / totalLessons) * 100) : 0;
-      progressObj[course.courseId] = percent;
-    }
+    });
+
+    await Promise.all(fetchPromises);
+
     setProgress(progressObj);
     setProgressCache(progressObj);
     if (typeof window !== 'undefined') {
@@ -88,8 +97,8 @@ function CompletedCourses() {
         body: JSON.stringify({
           courseId: course.courseId,
           courseName: course.name,
-          userName: user?.fullName || user?.firstName || "Student",
-          userEmail: user?.emailAddresses[0]?.emailAddress,
+          userName: session?.user?.name || "Student",
+          userEmail: session?.user?.email,
         }),
       });
       const genData = await genResponse.json();
@@ -103,15 +112,15 @@ function CompletedCourses() {
         body: JSON.stringify({
           certificateId: genData.certificateId,
           pdfBase64: genData.pdfBase64,
-          userEmail: user?.emailAddresses[0]?.emailAddress,
-          userName: user?.fullName || user?.firstName || "Student",
+          userEmail: session?.user?.email,
+          userName: session?.user?.name || "Student",
           courseName: course.name,
         }),
       });
       const sendData = await sendResponse.json();
       if (sendResponse.ok) {
         toast.success(
-          `Certificate sent successfully! Check your email: ${user?.emailAddresses[0]?.emailAddress}`
+          `Certificate sent successfully! Check your email: ${session?.user?.email}`
         );
       } else {
         toast.error(sendData.error || "Failed to send certificate");

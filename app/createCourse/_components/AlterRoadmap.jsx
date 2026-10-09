@@ -208,32 +208,39 @@ export default function AlterRoadmap() {
 
   // Edit Subtopic
   const startEditSub = (topicIndex, subIndex) => {
+    const sub = topics[topicIndex].subtopics[subIndex];
     setEditingSub({
       topicId: topics[topicIndex].id,
       index: subIndex,
-      value: topics[topicIndex].subtopics[subIndex],
+      value: typeof sub === 'string' ? sub : sub.name,
+      originalObj: typeof sub === 'object' ? sub : null,
     });
     setExpanded((prev) => ({ ...prev, [topics[topicIndex].id]: true }));
   };
   const saveEditSub = () => {
     if (!editingSub) return;
-    const { topicId, index, value } = editingSub;
+    const { topicId, index, value, originalObj } = editingSub;
     const trimmed = (value || "").trim();
     setTopics((prev) =>
       prev.map((t) => {
         if (t.id !== topicId) return t;
         const next = [...t.subtopics];
         const original = next[index];
+        const origName = typeof original === 'string' ? original : (original?.name || "");
 
         if (trimmed === "") {
-          if (original === "") {
+          if (origName === "") {
             next.splice(index, 1);
             return { ...t, subtopics: next };
           }
           return t;
         }
 
-        next[index] = trimmed;
+        if (originalObj) {
+          next[index] = { ...originalObj, name: trimmed };
+        } else {
+          next[index] = trimmed;
+        }
         return { ...t, subtopics: next };
       })
     );
@@ -246,7 +253,9 @@ export default function AlterRoadmap() {
       prev.map((t) => {
         if (t.id !== topicId) return t;
         const next = [...t.subtopics];
-        if (next[index] === "") {
+        const original = next[index];
+        const origName = typeof original === 'string' ? original : (original?.name || "");
+        if (origName === "") {
           next.splice(index, 1);
           return { ...t, subtopics: next };
         }
@@ -257,9 +266,8 @@ export default function AlterRoadmap() {
   };
 
   return (
-    <div className="p-8 ">
-      <div className="mb-6 flex flex-col items-center justify-center sticky top-0 z-10 bg-background backdrop-blur ">
-        <h2 className="text-2xl font-bold text-center my-1 text-foreground">Manage Course Roadmap</h2>
+    <div className="p-8 pt-0">
+      <div className="mb-6 flex flex-col items-center justify-center sticky top-0 z-10 bg-background backdrop-blur py-4 border-b">
         <Button
           variant="outline"
           size="sm"
@@ -272,6 +280,7 @@ export default function AlterRoadmap() {
       </div>
 
       {/* Outer grid with dnd-kit for smooth vertical+horizontal sorting */}
+      <DragDropContext onDragEnd={handleDragEnd}>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -416,7 +425,6 @@ export default function AlterRoadmap() {
                             </Button>
                           </div>
                         ) : (
-                          <DragDropContext onDragEnd={handleDragEnd}>
                             <Droppable
                               droppableId={index.toString()}
                               type="SUBTOPIC"
@@ -469,7 +477,7 @@ export default function AlterRoadmap() {
                                             </div>
                                           ) : (
                                             <span>
-                                              {index + 1}.{subIndex + 1} {sub}
+                                              {index + 1}.{subIndex + 1} {typeof sub === 'string' ? sub : sub?.name || "Unnamed subtopic"}
                                             </span>
                                           )}
                                           <div className="flex gap-1">
@@ -546,7 +554,6 @@ export default function AlterRoadmap() {
                                 </ul>
                               )}
                             </Droppable>
-                          </DragDropContext>
                         )}
                       </div>
                     )}
@@ -557,6 +564,7 @@ export default function AlterRoadmap() {
           </div>
         </SortableContext>
       </DndContext>
+      </DragDropContext>
     </div>
   );
 }

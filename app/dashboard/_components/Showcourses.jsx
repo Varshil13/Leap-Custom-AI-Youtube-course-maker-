@@ -4,7 +4,7 @@ import LoadingDialouge from "../../createCourse/_components/LoadingDialouge";
 import { db } from "@/services/db";
 import { CourseDetails, CourseVideos } from "@/services/schema";
 import { eq } from "drizzle-orm";
-import { useUser } from "@clerk/nextjs";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { CourseCard } from "@/components/ui/course-card";
@@ -62,7 +62,7 @@ function Showcourses() {
     }
   };
 
-  const { user } = useUser();
+  const { data: session } = useSession();
   const [courses, setCourses] = useState([]);
   const [progress, setProgress] = useState({});
   const [progressCache, setProgressCache] = useState(() => {
@@ -81,7 +81,7 @@ function Showcourses() {
 
   useEffect(() => {
     const fetchAll = async () => {
-      if (user?.id) {
+      if (session?.user?.email) {
         setLoading(true);
         const fetchedCourses = await fetchCourses();
         await fetchAllProgress(fetchedCourses);
@@ -89,7 +89,7 @@ function Showcourses() {
       }
     };
     fetchAll();
-  }, [user]);
+  }, [session?.user?.email]);
 
   const handleCourseClick = (courseId) => {
     router.push(`/dashboard/learnCourse/${courseId}`);
@@ -99,29 +99,37 @@ function Showcourses() {
     const result = await db
       .select()
       .from(CourseDetails)
-      .where(eq(CourseDetails.createdBy, user.emailAddresses[0].emailAddress));
+      .where(eq(CourseDetails.createdBy, session?.user?.email));
     setCourses(result);
     return result;
   };
 
   const fetchAllProgress = async (fetchedCourses) => {
     const progressObj = { ...progressCache };
-    for (const course of fetchedCourses) {
-      if (progressObj[course.courseId] !== undefined) continue;
-      const res = await fetch(`/api/progress?courseId=${course.courseId}`);
-      if (!res.ok) continue;
-      const data = await res.json();
-      const watchedCount = Object.values(data.progress || {}).filter(Boolean).length;
-      let totalLessons = 0;
+    
+    const fetchPromises = fetchedCourses.map(async (course) => {
+      if (progressObj[course.courseId] !== undefined) return;
       try {
-        const roadmap = typeof course.roadmap === 'string' ? JSON.parse(course.roadmap) : course.roadmap;
-        totalLessons = roadmap?.reduce((sum, ch) => sum + (ch.subtopics?.length || 0), 0) || 0;
-      } catch {
-        totalLessons = 0;
+        const res = await fetch(`/api/progress?courseId=${course.courseId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const watchedCount = Object.values(data.progress || {}).filter(Boolean).length;
+        let totalLessons = 0;
+        try {
+          const roadmap = typeof course.roadmap === 'string' ? JSON.parse(course.roadmap) : course.roadmap;
+          totalLessons = roadmap?.reduce((sum, ch) => sum + (ch.subtopics?.length || 0), 0) || 0;
+        } catch {
+          totalLessons = 0;
+        }
+        const percent = totalLessons > 0 ? Math.round((watchedCount / totalLessons) * 100) : 0;
+        progressObj[course.courseId] = percent;
+      } catch (e) {
+        console.error("Error fetching progress for course", course.courseId, e);
       }
-      const percent = totalLessons > 0 ? Math.round((watchedCount / totalLessons) * 100) : 0;
-      progressObj[course.courseId] = percent;
-    }
+    });
+
+    await Promise.all(fetchPromises);
+    
     setProgress(progressObj);
     setProgressCache(progressObj);
     if (typeof window !== 'undefined') {

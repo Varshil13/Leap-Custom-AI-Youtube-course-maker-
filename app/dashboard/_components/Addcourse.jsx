@@ -1,17 +1,17 @@
 'use client'
 import { Button } from '../../../components/ui/button';
-import { useUser } from '@clerk/nextjs';
+import { useSession } from "next-auth/react";
 import Link from 'next/link';
 import React, { use } from 'react'
 
 function Addcourse() {
-    const {user} = useUser();
+    const { data: session } = useSession();
 
   return (
   <div className='flex justify-between items-center '>
     <div className='p-5'>
       <h2 className='text-3xl text-foreground'>Hello, 
-        <span className='font-bold text-primary'>{user?.fullName}</span>
+        <span className='font-bold text-primary'>{session?.user?.name}</span>
         </h2>
         
     </div>
